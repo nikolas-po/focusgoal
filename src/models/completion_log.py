@@ -8,7 +8,7 @@ class CompletionLog(BaseModel):
     user_id = Column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
     object_type_id = Column(Integer, ForeignKey("completion_object_type.id"), nullable=False)
     object_id = Column(Integer, nullable=False)
-    completed_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    completed_at = Column(DateTime, default=lambda: datetime.now, nullable=False)
     progress = Column(Integer, nullable=True)
     comment = Column(Text, nullable=True)
 

@@ -17,7 +17,7 @@ SessionLocal = scoped_session(sessionmaker(bind=engine, autocommit=False, autofl
 
 def init_db():
     from src.models.base import Base
-    import src.models  # noqa
+    import src.models
     Base.metadata.create_all(bind=engine)
     _repair_missing_timestamp_columns(engine)
 
