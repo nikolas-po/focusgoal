@@ -1,0 +1,72 @@
+# Виртуальное окружение
+venv/
+env/
+.venv/
+.env/
+
+# Файлы Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Распространяемые файлы
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Логи и базы данных
+*.log
+*.sql
+*.sqlite
+*.db
+logs/
+backups/
+exports/
+
+# Настройки IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Файлы с секретами
+.env
+.env.local
+.env.*.local
+.focusgoal_remember.json
+
+# Отчёты тестов и покрытия
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.mypy_cache/
+.ruff_cache/
+
+# Alembic
+alembic/versions/*.pyc
+alembic/versions/__pycache__/
+
+# Системные файлы Linux
+*.pid
+*.lock
+
+# Временные файлы
+*.tmp
+*.temp
