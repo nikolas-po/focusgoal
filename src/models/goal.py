@@ -1,9 +1,13 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey
+"""Модель цели"""
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, CheckConstraint
 from sqlalchemy.orm import relationship
 from src.models.base import BaseModel
 
+
 class Goal(BaseModel):
+    """Таблица личных целей пользователя"""
     __tablename__ = "goal"
+
     user_id = Column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
     name = Column(String(100), nullable=False)
     description = Column(Text, nullable=True)
@@ -19,3 +23,10 @@ class Goal(BaseModel):
     fail_behavior = relationship("GoalFailBehavior")
     status = relationship("GoalStatus")
     sessions = relationship("FocusSession", back_populates="goal")
+
+    __table_args__ = (
+        CheckConstraint("length(trim(name)) >= 3", name="chk_goal_name_length"),
+    )
+
+    def __repr__(self):
+        return f"<Goal(id={self.id}, name=\'{self.name}\', status={self.status_id})>"

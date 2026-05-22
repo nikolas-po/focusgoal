@@ -1,3 +1,4 @@
+"""Пакет моделей данных"""
 from src.models.base import Base
 from src.models.dictionaries.goal_priority import GoalPriority
 from src.models.dictionaries.goal_status import GoalStatus
