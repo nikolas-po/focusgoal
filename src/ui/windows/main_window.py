@@ -124,11 +124,6 @@ class MainWindow(QMainWindow):
         prof_a.triggered.connect(self._open_profile)
         menu.addAction(prof_a)
 
-        # Напоминания
-        rem_menu = menu.addMenu("Напоминания")
-        rem_a = QAction("Управление напоминаниями", self)
-        rem_a.triggered.connect(self._open_reminders)
-        rem_menu.addAction(rem_a)
 
         # Помощь
         helpm = menu.addMenu("Помощь")
@@ -254,12 +249,6 @@ class MainWindow(QMainWindow):
         safe_raise(self._profile_win)
         self._profile_win._load()
 
-    def _open_reminders(self):
-        from src.ui.windows.reminders_window import RemindersWindow
-        if not hasattr(self, "_reminders_win") or not self._reminders_win.isVisible():
-            self._reminders_win = RemindersWindow(self.user_id, self)
-        self._reminders_win.show()
-        self._reminders_win.raise_()
 
     def _logout(self):
         reply = QMessageBox.question(

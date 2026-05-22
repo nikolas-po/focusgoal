@@ -1,0 +1,126 @@
+/*
+   FocusGoal — Тёмная тема
+   Подключается ПОСЛЕ common.qss, переопределяет цвета
+*/
+
+QWidget        { background-color: #2b2b2b; color: #e0e0e0; }
+QMainWindow    { background-color: #2b2b2b; }
+QDialog        { background-color: #2b2b2b; }
+QLabel         { color: #e0e0e0; background: transparent; }
+QScrollArea    { background-color: palette(window); }
+
+/* Поля ввода */
+QLineEdit, QComboBox, QSpinBox, QTimeEdit, QDateEdit {
+    background-color: #3c3c3c;
+    color: #e0e0e0;
+    border: 1px solid #555555;
+    border-radius: 4px;
+    padding: 8px;
+}
+QLineEdit:focus, QComboBox:focus, QSpinBox:focus { border: 2px solid #4CAF50; }
+QComboBox::drop-down { border: none; }
+QComboBox QAbstractItemView {
+    background-color: #3c3c3c;
+    color: #e0e0e0;
+    selection-background-color: #4CAF50;
+    selection-color: #ffffff;
+    border: 1px solid #555555;
+}
+
+/* Кнопки */
+QPushButton {
+    background-color: #4CAF50;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+}
+QPushButton:hover   { background-color: #45a049; }
+QPushButton:pressed { background-color: #3d8b40; }
+QPushButton:disabled { background-color: #444444; color: #777777; }
+
+/* Группы */
+QGroupBox { color: #e0e0e0; border: 1px solid #555555; background: transparent; }
+QGroupBox::title { color: #e0e0e0; }
+
+/* Чекбоксы */
+QCheckBox, QRadioButton { color: #e0e0e0; }
+QCheckBox::indicator, QRadioButton::indicator {
+    border: 1px solid #555555;
+    background: #3c3c3c;
+    width: 14px;
+    height: 14px;
+    border-radius: 2px;
+}
+QCheckBox::indicator:checked, QRadioButton::indicator:checked {
+    background: #4CAF50;
+    border-color: #4CAF50;
+}
+
+/* Вкладки */
+QTabWidget::pane  { border: 1px solid #555555; background-color: #2b2b2b; }
+QTabBar::tab      { background-color: #3a3a3a; color: #cccccc; border: 1px solid #555555; }
+QTabBar::tab:selected { background-color: #4CAF50; color: #ffffff; }
+QTabBar::tab:hover    { background-color: #484848; }
+
+/* Прокрутка */
+QScrollBar:vertical   { background-color: #2b2b2b; width: 12px; }
+QScrollBar::handle:vertical { background-color: #555555; border-radius: 6px; }
+QScrollBar::handle:vertical:hover { background-color: #777777; }
+QScrollBar:horizontal { background-color: #2b2b2b; height: 12px; }
+QScrollBar::handle:horizontal { background-color: #555555; border-radius: 6px; }
+
+/* Прогресс */
+QProgressBar { border: 1px solid #555555; background-color: #3a3a3a; color: #e0e0e0; border-radius: 5px; }
+QProgressBar::chunk { background-color: #4CAF50; border-radius: 4px; }
+
+/* Меню */
+QMenu { background-color: #3c3c3c; border: 1px solid #555555; }
+QMenu::item { color: #e0e0e0; }
+QMenu::item:selected { background-color: #4CAF50; color: #ffffff; }
+QMenuBar { background-color: #222222; color: #e0e0e0; }
+QMenuBar::item:selected { background-color: #4CAF50; color: #ffffff; }
+
+/* Toolbar */
+QToolBar   { background-color: #2b2b2b; border: 1px solid #555555; }
+QToolButton { color: #e0e0e0; }
+QToolButton:hover { background-color: #3c3c3c; border: 1px solid #555555; }
+
+/* Таблицы */
+QHeaderView::section { background-color: #3a3a3a; color: #e0e0e0; border: 1px solid #555555; }
+QTableWidget, QTreeWidget, QListWidget {
+    background-color: #3c3c3c;
+    color: #e0e0e0;
+    border: 1px solid #555555;
+    gridline-color: #4a4a4a;
+}
+QTableWidget::item:alternate { background-color: #363636; }
+QTableWidget::item:selected, QListWidget::item:selected {
+    background-color: #4CAF50;
+    color: #ffffff;
+}
+
+/* Текстовые поля */
+QTextEdit, QPlainTextEdit { background-color: #3c3c3c; color: #e0e0e0; border: 1px solid #555555; }
+
+/* Разделители */
+QSplitter::handle { background-color: #555555; }
+
+/* Диалоги/сообщения */
+QMessageBox        { background-color: #2b2b2b; }
+QMessageBox QLabel { color: #e0e0e0; }
+QCalendarWidget    { background-color: #3c3c3c; color: #e0e0e0; }
+QInputDialog, QFileDialog { background-color: #2b2b2b; color: #e0e0e0; }
+
+/* Строка статуса */
+QStatusBar { background-color: #222222; color: #aaaaaa; border-top: 1px solid #555555; }
+
+/* Карточки — явно задаём тёмный фон */
+QFrame#cardFrame,
+QFrame#statCard,
+QFrame#profileCard,
+QFrame#loginCard,
+QFrame#registerCard {
+    background-color: #363636;
+    border: 1px solid #555555;
+    border-radius: 10px;
+}

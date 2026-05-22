@@ -1,0 +1,249 @@
+/*
+   FocusGoal — общие стили (не зависят от темы)
+   Размер шрифта подставляется: {font_size}
+   */
+
+* {
+    font-size: {font_size}px;
+    font-family: Arial, sans-serif;
+}
+
+/* Базовые виджеты */
+QWidget       { color: palette(windowText); background-color: palette(window); }
+QMainWindow   { background-color: palette(window); }
+QDialog       { background-color: palette(window); }
+QLabel        { color: palette(windowText); background: transparent; }
+QScrollArea   { border: none; background: transparent; }
+
+/* Кнопки (первичные) */
+QPushButton {
+    background-color: #4CAF50;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 20px;
+    font-weight: bold;
+    min-height: 40px;
+    min-width: 80px;
+    /* cursor: pointinghand; */
+}
+QPushButton:hover    { background-color: #45a049; }
+QPushButton:pressed  { background-color: #3d8b40; }
+QPushButton:focus    { outline: none; }
+QPushButton:disabled { background-color: #cccccc; color: #666666; }
+
+/* Вторичные кнопки */
+QPushButton#dangerButton         { background-color: #FF5252; }
+QPushButton#dangerButton:hover   { background-color: #E53935; }
+QPushButton#secondaryButton      { background-color: #2196F3; }
+QPushButton#secondaryButton:hover { background-color: #1976D2; }
+
+/* Поля ввода */
+QLineEdit, QComboBox, QSpinBox, QTimeEdit, QDateEdit {
+    border: 1px solid palette(mid);
+    border-radius: 4px;
+    padding: 8px;
+    min-height: 35px;
+    background-color: palette(base);
+    color: palette(text);
+}
+QLineEdit:focus, QComboBox:focus, QSpinBox:focus,
+QTimeEdit:focus, QDateEdit:focus { border: 2px solid #4CAF50; }
+
+/* Группы */
+QGroupBox {
+    font-weight: bold;
+    border: 1px solid palette(mid);
+    border-radius: 6px;
+    margin-top: 10px;
+    padding-top: 15px;
+    background: transparent;
+}
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 10px;
+    padding: 0 5px;
+    color: palette(windowText);
+}
+
+/* Чекбоксы/радио */
+QCheckBox, QRadioButton {
+    spacing: 8px;
+    background: transparent;
+    min-height: 25px;
+    color: palette(windowText);
+}
+
+/* Вкладки */
+QTabWidget::pane { border: 1px solid palette(mid); border-radius: 4px; }
+QTabBar::tab {
+    padding: 10px 20px;
+    border: 1px solid palette(mid);
+    border-radius: 4px 4px 0 0;
+    margin-right: 2px;
+    min-height: 35px;
+    background: palette(button);
+    color: palette(buttonText);
+}
+QTabBar::tab:selected { font-weight: bold; background: #4CAF50; color: #ffffff; }
+QTabBar::tab:hover    { background: palette(highlight); color: palette(highlightedText); }
+
+/* Прокрутка */
+QScrollBar:vertical   { width: 12px; border-radius: 6px; }
+QScrollBar::handle:vertical { border-radius: 6px; min-height: 20px; background: palette(mid); }
+QScrollBar::handle:vertical:hover { background: palette(dark); }
+QScrollArea { background: palette(window); }
+QScrollArea QWidget { background: transparent; }
+
+/* Прогресс */
+QProgressBar {
+    border: 1px solid palette(mid);
+    border-radius: 4px;
+    text-align: center;
+    min-height: 20px;
+    background: palette(alternateBase);
+    color: palette(windowText);
+}
+QProgressBar::chunk { border-radius: 3px; background-color: #4CAF50; }
+
+/* Меню */
+QMenu { border: 1px solid palette(mid); border-radius: 4px; background: palette(base); }
+QMenu::item { padding: 8px 30px 8px 20px; color: palette(windowText); }
+QMenu::item:selected { background: #4CAF50; color: #ffffff; font-weight: bold; }
+QMenuBar { background: palette(window); color: palette(windowText); }
+QMenuBar::item:selected { background: #4CAF50; color: #ffffff; }
+
+/* Toolbar */
+QToolButton {
+    background-color: transparent;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    padding: 5px 10px;
+    color: palette(windowText);
+    /* cursor: pointinghand; */
+}
+QToolButton:hover { border: 1px solid palette(mid); background: palette(alternateBase); }
+
+/* Таблицы/списки */
+QHeaderView::section {
+    padding: 8px;
+    border: 1px solid palette(mid);
+    font-weight: bold;
+    background: palette(button);
+    color: palette(buttonText);
+}
+QTableWidget, QTreeWidget, QListWidget {
+    border: 1px solid palette(mid);
+    border-radius: 4px;
+    background: palette(base);
+    color: palette(text);
+    gridline-color: palette(mid);
+}
+QTableWidget::item, QListWidget::item { padding: 5px; border: none; }
+QTableWidget::item:selected, QListWidget::item:selected {
+    background: #4CAF50;
+    color: #ffffff;
+    font-weight: bold;
+}
+
+/* Текстовые поля */
+QTextEdit, QPlainTextEdit {
+    border: 1px solid palette(mid);
+    border-radius: 4px;
+    padding: 8px;
+    background-color: palette(base);
+    color: palette(text);
+}
+
+/* Разделители */
+QSplitter::handle          { background-color: palette(mid); }
+QSplitter::handle:horizontal { width: 6px; }
+QSplitter::handle:vertical   { height: 6px; }
+
+/* Диалоги */
+QMessageBox            { background-color: palette(window); }
+QMessageBox QLabel     { color: palette(windowText); }
+QCalendarWidget        { background-color: palette(base); color: palette(text); }
+QInputDialog, QFileDialog { background-color: palette(window); color: palette(windowText); }
+
+/* Карточки (именованные фреймы) */
+/* Используем background: palette(base) — правильно перекрашивается темой */
+QFrame {
+    border: none;
+    background: transparent;
+}
+QFrame#cardFrame,
+QFrame#statCard,
+QFrame#profileCard,
+QFrame#loginCard,
+QFrame#registerCard {
+    background-color: palette(base);
+    border: 1px solid palette(mid);
+    border-radius: 10px;
+    padding: 4px;
+}
+
+/*
+   Окно входа (Login)
+   */
+QLabel#loginLogo     { font-size: 60px; background: transparent; }
+QLabel#loginTitle    { font-size: 28px; font-weight: bold; color: #4CAF50; background: transparent; }
+QLabel#loginSubtitle { font-size: 12px; color: #888; background: transparent; }
+QLabel#loginLabel    { font-size: 13px; font-weight: bold; background: transparent; }
+QLabel#loginErrorLabel { color: #FF5252; font-size: 12px; background: transparent; }
+QCheckBox#loginCheckbox { font-size: 12px; }
+
+QPushButton#loginBtn {
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: bold;
+}
+QPushButton#loginBtn:hover { background: #45a049; }
+
+QPushButton#loginForgotBtn {
+    color: #2196F3;
+    border: none;
+    background: transparent;
+    font-size: 12px;
+    text-align: right;
+    min-height: 24px;
+}
+QPushButton#loginForgotBtn:hover { text-decoration: underline; }
+
+QPushButton#loginRegBtn {
+    color: #4CAF50;
+    border: none;
+    font-weight: bold;
+    background: transparent;
+    min-height: 32px;
+}
+QPushButton#loginRegBtn:hover { text-decoration: underline; }
+
+/*
+   Окно регистрации (Register)
+   */
+QLabel#registerLogo    { font-size: 48px; background: transparent; }
+QLabel#registerTitle   { font-size: 24px; font-weight: bold; color: #4CAF50; background: transparent; }
+QLabel#registerLabel   { font-size: 13px; font-weight: bold; background: transparent; }
+QLabel#registerErrorLabel { color: #FF5252; font-size: 12px; background: transparent; }
+
+QPushButton#registerBtn {
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: bold;
+}
+QPushButton#registerBtn:hover { background: #45a049; }
+
+QPushButton#registerBackBtn {
+    color: #4CAF50;
+    border: none;
+    font-weight: bold;
+    background: transparent;
+}
+QPushButton#registerBackBtn:hover { text-decoration: underline; }
