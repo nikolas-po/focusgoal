@@ -52,6 +52,7 @@ exports/
 .focusgoal_remember.json
 
 # Отчёты тестов и покрытия
+.coverage_report/
 .pytest_cache/
 .coverage
 htmlcov/

@@ -35,6 +35,8 @@ class Settings:
 
     NICKNAME_MIN_LENGTH = 3
     NICKNAME_MAX_LENGTH = 20
+    GOAL_NAME_MIN_LENGTH = 3
+    HABIT_NAME_MIN_LENGTH = 3
     MIN_DISK_SPACE_MB = int(os.getenv("MIN_DISK_SPACE_MB", "100"))
 
     @property

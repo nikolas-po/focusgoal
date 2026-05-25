@@ -2,10 +2,17 @@
 import os
 import sys
 from pathlib import Path
-from datetime import datetime, timezone
+from datetime import datetime, timezone, time
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from apscheduler.triggers.cron import CronTrigger
+
+try:
+    from plyer import notification as plyer_notify
+    HAS_PLYER = True
+except Exception:
+    plyer_notify = None
+    HAS_PLYER = False
 
 
 class NotificationService:
@@ -35,6 +42,48 @@ class NotificationService:
 
     def __init__(self, db):
         self.db = db
+        self._quiet_mode = False
+        self._quiet_start = None
+        self._quiet_end = None
+
+    def set_quiet(self, enabled: bool, start: time = None, end: time = None):
+        self._quiet_mode = enabled
+        self._quiet_start = start
+        self._quiet_end = end
+        return True
+
+    def _is_quiet_now(self):
+        if not self._quiet_mode or self._quiet_start is None or self._quiet_end is None:
+            return False
+        current_time = datetime.now().time()
+        if self._quiet_start <= self._quiet_end:
+            return self._quiet_start <= current_time <= self._quiet_end
+        return current_time >= self._quiet_start or current_time <= self._quiet_end
+
+    def send(self, title: str, message: str, urgency: str = "normal"):
+        if self._is_quiet_now():
+            print("[NotificationService] Уведеноение подавлено в тихий час")
+            return False
+
+        if HAS_PLYER and plyer_notify:
+            try:
+                plyer_notify.notify(
+                    title=title,
+                    message=message,
+                    app_name="FocusGoal",
+                    timeout=5,
+                )
+                return True
+            except Exception as e:
+                print(f"[NotificationService] Plyer notify failed: {e}")
+
+        return self.send_notification(title, message, urgency)
+
+    def send_focus_complete(self, minutes: int):
+        return self.send(
+            "Фокус завершен",
+            f"Вы завершили фокусную сессию на {minutes} минут.",
+        )
 
     def send_notification(self, title: str, message: str, urgency: str = "normal"):
         """Отправить уведомление в systemd"""
@@ -71,7 +120,7 @@ class NotificationService:
             ).all()
             
             for goal in goals_today:
-                msg = f"📌 Сегодня нужно выполнить цель: {goal.name}"
+                msg = f"Сегодня нужно выполнить цель: {goal.name}"
                 self.send_notification("Напоминание о цели", msg)
             
             # Цели с дедлайном завтра
@@ -117,35 +166,29 @@ class NotificationService:
             print(f"[NotificationService] Ошибка при проверке привычек: {e}")
 
     def check_scheduled_notifications(self):
-        """Проверить и отправить запланированные уведомления"""
         try:
             from src.models.notification import NotificationSchedule
             from datetime import datetime, timedelta
 
             now = datetime.now()
-            time_window = now - timedelta(minutes=5)
+            # Просроченные   игнорируются.
+            time_window_start = now - timedelta(minutes=5)
+            time_window_end = now + timedelta(minutes=1)
 
             pending = self.db.query(NotificationSchedule).filter(
                 NotificationSchedule.delivery_status_id == 2,
-                NotificationSchedule.send_at.between(time_window, now)
+                NotificationSchedule.send_at.between(time_window_start, time_window_end)
             ).all()
 
-            sent = 0
             for n in pending:
                 self.send_notification("Напоминание", n.content)
-                self.db.delete(n)   # удаляем, чтобы избежать нарушения CHECK
-                sent += 1
+                # Запись остаётся в БД, но при следующем запуске она уже не попадёт в окно
 
-            if sent:
-                self.db.commit()
-                print(f"[NotificationService] Отправлено {sent} уведомлений")
+            if pending:
+                print(f"[NotificationService] Отправлено {len(pending)} уведомлений")
 
         except Exception as e:
             print(f"[NotificationService] Ошибка при проверке уведомлений: {e}")
-            try:
-                self.db.rollback()
-            except:
-                pass
 
     def schedule_daily_backup(self, hour: int = 2, minute: int = 0):
         """Расписание для ежедневного бэкапа в 2:00 ночи"""

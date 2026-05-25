@@ -42,7 +42,7 @@ class AuthService:
 
     def register(self, nickname: str, password: str,
                  email: str = None, timezone_name: str = "Europe/Moscow",
-                 gdpr_consent: bool = False) -> Dict:
+                 gdpr_consent: bool = True) -> Dict:
         """Регистрация с обязательным согласием ПДн (ТЗ 152-ФЗ, ст.9)"""
         if not gdpr_consent:
             raise ValueError(
@@ -74,7 +74,7 @@ class AuthService:
     def login(self, nickname: str, password: str) -> Dict:
         if self._is_blocked(nickname):
             raise ValueError(
-                f"Слишком много попыток. Подождите {self.settings.LOGIN_BLOCK_TIME} сек."
+                f"Вход заблокирован. Подождите {self.settings.LOGIN_BLOCK_TIME} сек."
             )
         user = self.user_repo.get_by_nickname(nickname)
         if not user:

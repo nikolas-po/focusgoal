@@ -59,7 +59,7 @@ class StatisticsService:
 
         start_date = datetime.now() - timedelta(days=days)
         results = self.db.query(
-            func.date_trunc("day", Goal.created_at).label("date"),
+            func.date(Goal.created_at).label("date"),
             func.count(Goal.id).label("count"),
         ).filter(
             and_(Goal.user_id == user_id, Goal.created_at >= start_date)
@@ -71,7 +71,7 @@ class StatisticsService:
 
         start_date = datetime.now() - timedelta(days=days)
         results = self.db.query(
-            func.date_trunc("day", CompletionLog.completed_at).label("date"),
+            func.date(CompletionLog.completed_at).label("date"),
             func.count(CompletionLog.id).label("count"),
         ).filter(
             and_(

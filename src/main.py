@@ -20,15 +20,16 @@ def _setup_qt_env():
 
 _setup_qt_env()
 
-from PyQt5.QtWidgets import QApplication, QMessageBox, QWidget
+from PyQt5.QtWidgets import QApplication, QMessageBox, QWidget, QPushButton, QToolButton
 from PyQt5.QtGui import QPalette, QColor, QFont, QGuiApplication
 from PyQt5.QtCore import Qt
+from PyQt5.QtCore import QObject, QEvent
 from src.config.settings import Settings
 from src.config import theme_state
 
 STYLES_DIR = Path(__file__).resolve().parent / "ui" / "styles"
 
-#  Логгер
+#  Логгер 
 
 def _logger():
     try:
@@ -68,7 +69,7 @@ def safe_raise(w):
         try: w.raise_(); w.activateWindow()
         except: pass
 
-#  Стили
+#  Стили 
 
 def load_theme_style(theme: str, font_size: int = 14) -> str:
     tf = "dark_theme.qss" if theme == "Тёмная" else "light_theme.qss"
@@ -100,6 +101,28 @@ def apply_theme(theme: str, font_size: int):
                 chart.refresh_theme()
         except Exception:
             pass
+    try:
+        for widget in app.allWidgets():
+            try:
+                widget.style().unpolish(widget)
+                widget.style().polish(widget)
+                widget.update()
+            except Exception:
+                pass
+        app.processEvents()
+    except Exception:
+        pass
+    try:
+        for btn in app.findChildren(QPushButton):
+            try:
+                btn.setCursor(Qt.PointingHandCursor)
+                obj_name = btn.objectName()
+                if obj_name not in ("linkButton", "transparentButton"):
+                    btn.setFlat(False)  
+            except Exception:
+                pass
+    except Exception:
+        pass
     _logger().info(f"Тема применена: {theme}, шрифт: {font_size}px")
 
 
@@ -136,6 +159,26 @@ def apply_saved_theme(app: QApplication, user_id: int = None):
                 chart.refresh_theme()
         except Exception:
             pass
+    try:
+        for widget in app.allWidgets():
+            try:
+                widget.style().unpolish(widget); widget.style().polish(widget); widget.update()
+            except Exception:
+                pass
+        app.processEvents()
+    except Exception:
+        pass
+    try:
+        for btn in app.findChildren(QPushButton):
+            try:
+                btn.setCursor(Qt.PointingHandCursor)
+                obj_name = btn.objectName()
+                if obj_name not in ("linkButton", "transparentButton"):
+                    btn.setFlat(False)  
+            except Exception:
+                pass
+    except Exception:
+        pass
     _logger().info("Сохранённая тема применена")
 
 
@@ -190,7 +233,7 @@ def _apply_palette(app, theme):
         p.setColor(QPalette.Dark,            QColor(160,160,160))
     app.setPalette(p)
 
-#  Инициализация
+#  Инициализация 
 
 def _init_app(logger) -> Settings:
     logger.info("Инициализация приложения")
@@ -202,6 +245,40 @@ def _init_app(logger) -> Settings:
     except: pass
     logger.info("Приложение инициализировано")
     return s
+
+
+class _ButtonMonitor(QObject):
+    def __init__(self, app):
+        super().__init__(app)
+        self._app = app
+
+    def eventFilter(self, obj, event):
+        try:
+            if event.type() == QEvent.ChildAdded:
+                if hasattr(event, 'child'):
+                    try:
+                        ch = event.child()
+                    except Exception:
+                        ch = None
+                    if isinstance(ch, QPushButton):
+                        self._fix_button(ch)
+            if event.type() == QEvent.Show and isinstance(obj, QPushButton):
+                self._fix_button(obj)
+        except Exception:
+            pass
+        return super().eventFilter(obj, event)
+
+    def _fix_button(self, btn: QPushButton):
+        try:
+            try: btn.setCursor(Qt.PointingHandCursor)
+            except: pass
+            obj_name = btn.objectName()
+            if obj_name in ("linkButton", "transparentButton"):
+                btn.setFlat(True)
+            else:
+                btn.setFlat(False) 
+        except Exception:
+            pass
 
 
 def _init_db(logger) -> bool:
@@ -307,7 +384,7 @@ def _parse_args():
     args, _ = p.parse_known_args()
     return args
 
-#  Точка входа
+#  Точка входа 
 
 def main():
     args = _parse_args()
@@ -331,10 +408,22 @@ def main():
     except Exception as e:
         print(f"Qt init error: {e}"); sys.exit(1)
 
-    # Fusion — единственный стиль, полностью соблюдающий QSS (включая root)
-    app.setStyle("Fusion")
+    from PyQt5.QtWidgets import QStyleFactory
+    available_styles = QStyleFactory.keys()
+    style_to_use = "Fusion"  # Default to Fusion
+    for preferred in ["Plastique", "Cleanlooks", "GTK+", "Oxygen"]:
+        if preferred in available_styles:
+            style_to_use = preferred
+            break
+    app.setStyle(style_to_use)
     app.setApplicationName("FocusGoal")
     app.setOrganizationName("FocusGoal")
+
+    try:
+        monitor = _ButtonMonitor(app)
+        app.installEventFilter(monitor)
+    except Exception:
+        pass
 
     # Обработка Ctrl+C — корректная остановка планировщика и Qt
     def _sigint(*_):
