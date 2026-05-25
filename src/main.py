@@ -28,7 +28,7 @@ from src.config import theme_state
 
 STYLES_DIR = Path(__file__).resolve().parent / "ui" / "styles"
 
-# ── Логгер ─────────────────────────────────────────────────────────────────
+#  Логгер
 
 def _logger():
     try:
@@ -38,7 +38,7 @@ def _logger():
         import logging
         return logging.getLogger("FocusGoal")
 
-# ── Нормализация ────────────────────────────────────────────────────────────
+#  Нормализация 
 
 def _norm_theme(t: str) -> str:
     if t and t.strip().lower() in ("тёмная", "темная", "dark"):
@@ -68,7 +68,7 @@ def safe_raise(w):
         try: w.raise_(); w.activateWindow()
         except: pass
 
-# ── Стили ───────────────────────────────────────────────────────────────────
+#  Стили
 
 def load_theme_style(theme: str, font_size: int = 14) -> str:
     tf = "dark_theme.qss" if theme == "Тёмная" else "light_theme.qss"
@@ -190,7 +190,7 @@ def _apply_palette(app, theme):
         p.setColor(QPalette.Dark,            QColor(160,160,160))
     app.setPalette(p)
 
-# ── Инициализация ───────────────────────────────────────────────────────────
+#  Инициализация
 
 def _init_app(logger) -> Settings:
     logger.info("Инициализация приложения")
@@ -307,7 +307,7 @@ def _parse_args():
     args, _ = p.parse_known_args()
     return args
 
-# ── Точка входа ─────────────────────────────────────────────────────────────
+#  Точка входа
 
 def main():
     args = _parse_args()

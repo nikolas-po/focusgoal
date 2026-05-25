@@ -29,14 +29,14 @@ class ImportDialog(QDialog):
         layout.setContentsMargins(25, 25, 25, 25)
 
         title = QLabel("Импорт данных")
-        title.setStyleSheet("font-size: 20px; font-weight: bold;")
+        title.setProperty("role", "dialogTitle")
         layout.addWidget(title)
 
         warn = QLabel(
             "Перед импортом рекомендуется создать резервную копию. "
             "При конфликтах данные обрабатываются согласно выбранному режиму."
         )
-        warn.setStyleSheet("color: #FF5252; font-size: 12px; font-weight: bold;")
+        warn.setProperty("role", "errorTextBold")
         warn.setWordWrap(True)
         layout.addWidget(warn)
 
@@ -45,10 +45,11 @@ class ImportDialog(QDialog):
         fl = QVBoxLayout(file_g)
         sel_btn = QPushButton("Выбрать файл")
         sel_btn.setMinimumHeight(42)
+        sel_btn.setObjectName("secondaryButton")
         sel_btn.clicked.connect(self._select_file)
         fl.addWidget(sel_btn)
         self.file_label = QLabel("Файл не выбран")
-        self.file_label.setStyleSheet("color: #888; font-style: italic; font-size: 12px;")
+        self.file_label.setProperty("role", "mutedItalicText")
         self.file_label.setWordWrap(True)
         fl.addWidget(self.file_label)
         layout.addWidget(file_g)
@@ -78,6 +79,7 @@ class ImportDialog(QDialog):
 
         btn_row = QHBoxLayout()
         import_btn = QPushButton("Импортировать")
+        import_btn.setObjectName("secondaryButton")
         import_btn.setMinimumHeight(48)
         import_btn.clicked.connect(self._import)
         btn_row.addWidget(import_btn)
@@ -93,17 +95,6 @@ class ImportDialog(QDialog):
         outer = QVBoxLayout(self)
         outer.addWidget(scroll)
 
-        self.setStyleSheet("""
-            QDialog { background: palette(window); }
-            QGroupBox { font-weight: bold; border: 1px solid palette(mid);
-                        border-radius: 8px; margin-top: 8px; padding-top: 12px; }
-            QGroupBox::title { subcontrol-origin: margin; left: 10px; padding: 0 4px; }
-            QPushButton { background: #2196F3; color: white; border: none;
-                          border-radius: 4px; font-weight: bold; font-size: 14px; }
-            QPushButton:hover { background: #1976D2; }
-            QPushButton#cancelButton { background: #9E9E9E; }
-        """)
-
     def _select_file(self):
         path, _ = QFileDialog.getOpenFileName(
             self, "Выбрать файл",
@@ -113,7 +104,7 @@ class ImportDialog(QDialog):
         if path:
             self.file_path = path
             self.file_label.setText(path)
-            self.file_label.setStyleSheet("color: #4CAF50; font-size: 12px;")
+            self.file_label.setProperty("role", "accentText")
 
     def _import(self):
         if not self.file_path:

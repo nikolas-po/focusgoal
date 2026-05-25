@@ -26,12 +26,12 @@ class PasswordRecoveryDialog(QDialog):
         layout.setContentsMargins(30, 30, 30, 30)
 
         icon = QLabel("🔑")
-        icon.setStyleSheet("font-size: 48px;")
+        icon.setProperty("role", "extraLargeIcon")
         icon.setAlignment(Qt.AlignCenter)
         layout.addWidget(icon)
 
         title = QLabel("Восстановление пароля")
-        title.setStyleSheet("font-size: 18px; font-weight: bold;")
+        title.setProperty("role", "sectionTitle")
         title.setAlignment(Qt.AlignCenter)
         layout.addWidget(title)
 
@@ -40,13 +40,13 @@ class PasswordRecoveryDialog(QDialog):
             "Эта операция требует доступа к файлу .env\n"
             "(ключ шифрования ENCRYPTION_KEY)."
         )
-        info.setStyleSheet("color: #666; font-size: 12px;")
+        info.setProperty("role", "smallText")
         info.setAlignment(Qt.AlignCenter)
         info.setWordWrap(True)
         layout.addWidget(info)
 
         nick_lbl = QLabel("Никнейм:")
-        nick_lbl.setStyleSheet("font-weight: bold;")
+        nick_lbl.setProperty("role", "boldText")
         layout.addWidget(nick_lbl)
         self.nickname_input = QLineEdit()
         self.nickname_input.setPlaceholderText("Введите ваш никнейм")
@@ -54,7 +54,7 @@ class PasswordRecoveryDialog(QDialog):
         layout.addWidget(self.nickname_input)
 
         new_pwd_lbl = QLabel("Новый пароль:")
-        new_pwd_lbl.setStyleSheet("font-weight: bold;")
+        new_pwd_lbl.setProperty("role", "boldText")
         layout.addWidget(new_pwd_lbl)
         self.new_pwd = QLineEdit()
         self.new_pwd.setEchoMode(QLineEdit.Password)
@@ -63,7 +63,7 @@ class PasswordRecoveryDialog(QDialog):
         layout.addWidget(self.new_pwd)
 
         confirm_lbl = QLabel("Повторите пароль:")
-        confirm_lbl.setStyleSheet("font-weight: bold;")
+        confirm_lbl.setProperty("role", "boldText")
         layout.addWidget(confirm_lbl)
         self.confirm_pwd = QLineEdit()
         self.confirm_pwd.setEchoMode(QLineEdit.Password)
@@ -72,26 +72,20 @@ class PasswordRecoveryDialog(QDialog):
         layout.addWidget(self.confirm_pwd)
 
         self.error_lbl = QLabel("")
-        self.error_lbl.setStyleSheet("color: #FF5252; font-size: 12px;")
+        self.error_lbl.setProperty("role", "errorText")
         self.error_lbl.setAlignment(Qt.AlignCenter)
         self.error_lbl.setVisible(False)
         layout.addWidget(self.error_lbl)
 
         reset_btn = QPushButton("Сбросить пароль")
         reset_btn.setMinimumHeight(46)
-        reset_btn.setStyleSheet(
-            "QPushButton { background: #FF9800; color: white; border: none; "
-            "border-radius: 6px; font-size: 15px; font-weight: bold; }"
-            "QPushButton:hover { background: #F57C00; }"
-        )
+        reset_btn.setObjectName("warningButton")
         reset_btn.clicked.connect(self._reset)
         layout.addWidget(reset_btn)
 
         back_btn = QPushButton("← Вернуться ко входу")
         back_btn.setFlat(True)
-        back_btn.setStyleSheet(
-            "color: #4CAF50; border: none; background: transparent; font-weight: bold;"
-        )
+        back_btn.setObjectName("linkButton")
         back_btn.clicked.connect(self.reject)
         layout.addWidget(back_btn, alignment=Qt.AlignCenter)
 

@@ -29,7 +29,7 @@ class RegisterWindow(BaseAuthWindow):
         # Scroll area для содержимого
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
-        scroll.setStyleSheet("QScrollArea { border: none; background: transparent; }")
+        scroll.setProperty("role", "transparentScrollArea")
 
         container = QWidget()
         scroll.setWidget(container)
@@ -51,7 +51,7 @@ class RegisterWindow(BaseAuthWindow):
         self.nickname_input = self._create_input("Минимум 3 символа")
         cl.addWidget(self.nickname_input)
         self.nick_hint = QLabel("")
-        self.nick_hint.setStyleSheet("font-size:11px; color:#FF5252;")
+        self.nick_hint.setProperty("role", "errorSmallText")
         cl.addWidget(self.nick_hint)
 
         # Email
@@ -66,12 +66,13 @@ class RegisterWindow(BaseAuthWindow):
 
         # Индикатор надёжности
         self.pwd_strength = QProgressBar()
+        self.pwd_strength.setObjectName("pwdStrengthBar")
         self.pwd_strength.setRange(0, 4)
         self.pwd_strength.setTextVisible(False)
         self.pwd_strength.setMaximumHeight(6)
         cl.addWidget(self.pwd_strength)
         self.pwd_strength_label = QLabel("")
-        self.pwd_strength_label.setStyleSheet("font-size:11px; color:#888;")
+        self.pwd_strength_label.setProperty("role", "mutedSmallText")
         cl.addWidget(self.pwd_strength_label)
 
         # Повторить пароль
@@ -79,7 +80,7 @@ class RegisterWindow(BaseAuthWindow):
         self.password2_input = self._create_input("Повторите пароль", QLineEdit.Password)
         cl.addWidget(self.password2_input)
         self.pwd2_hint = QLabel("")
-        self.pwd2_hint.setStyleSheet("font-size:11px;")
+        self.pwd2_hint.setProperty("role", "mutedSmallText")
         cl.addWidget(self.pwd2_hint)
 
         # Часовой пояс
@@ -135,7 +136,7 @@ class RegisterWindow(BaseAuthWindow):
     def _validate_nick(self, text: str):
         stripped = text.strip()
         if stripped and len(stripped) < 3:
-            self.nick_hint.setText("⚠️  Минимум 3 символа")
+            self.nick_hint.setText("Минимум 3 символа")
         else:
             self.nick_hint.setText("")
 

@@ -46,7 +46,7 @@ class StatisticsChart(QWidget):
             c = _theme_colors()
             self._fig = Figure(figsize=(6, 3), tight_layout=True, facecolor=c["bg"])
             self._canvas = FigureCanvas(self._fig)
-            self._canvas.setStyleSheet("background: transparent;")
+            self._canvas.setProperty("role", "transparentBackground")
             self._layout.addWidget(self._canvas)
         else:
             lbl = QLabel("matplotlib не установлен")
@@ -110,7 +110,7 @@ class StatisticsChart(QWidget):
         ax = self._fig.add_subplot(111)
         self._apply_theme(ax)
         c = _theme_colors()
-        safe_labels = [_strip_emoji(l) for l in labels]
+        safe_labels = labels
         total = sum(values)
         if total > 0:
             colors = ["#4CAF50", "#FF5252", "#FF9800", "#2196F3", "#9C27B0"]
@@ -135,12 +135,3 @@ class StatisticsChart(QWidget):
                 self._apply_theme(ax)
             self._canvas.draw()
 
-
-def _strip_emoji(s: str) -> str:
-    replacements = {
-        "✅": "Выполнено", "⏹": "Прервано", "❗": "Внешне",
-        "🔒": "Фокус", "🚀": "Запуск", "⚠️": "Внимание",
-    }
-    for k, v in replacements.items():
-        s = s.replace(k, v)
-    return s

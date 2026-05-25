@@ -23,7 +23,7 @@ class LoginWindow(BaseAuthWindow):
         self._setup_ui()
         self._load_remembered()
 
-    #Запомни меня
+    # Запомни меня
 
     def _load_remembered(self):
         if not self._remember_file.exists(): return
@@ -69,7 +69,7 @@ class LoginWindow(BaseAuthWindow):
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setAlignment(Qt.AlignTop)
-        scroll.setStyleSheet("background: transparent;")
+        scroll.setProperty("role", "transparentBackground")
         container = QWidget()
         container.setMaximumWidth(720)
         container.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)

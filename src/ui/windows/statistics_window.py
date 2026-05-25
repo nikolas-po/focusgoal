@@ -26,7 +26,7 @@ class StatisticsWindow(QWidget):
         layout.setContentsMargins(25, 25, 25, 25)
 
         title = QLabel("Статистика и аналитика")
-        title.setStyleSheet("font-size: 22px; font-weight: bold;")
+        title.setProperty("role", "pageTitle")
         layout.addWidget(title)
 
         # Панель управления
@@ -41,6 +41,7 @@ class StatisticsWindow(QWidget):
         pg_l.addWidget(self.period_combo)
         upd_btn = QPushButton("Обновить")
         upd_btn.setMinimumHeight(36)
+        upd_btn.setObjectName("secondaryButton")
         upd_btn.clicked.connect(self._load_statistics)
         pg_l.addWidget(upd_btn)
         ctrl.addWidget(period_g)
@@ -49,12 +50,15 @@ class StatisticsWindow(QWidget):
         eg_l = QHBoxLayout(exp_g)
         pdf_btn = QPushButton("PDF")
         pdf_btn.setMinimumHeight(36)
+        pdf_btn.setObjectName("secondaryButton")
         pdf_btn.clicked.connect(self._export_pdf)
         csv_btn = QPushButton("CSV")
         csv_btn.setMinimumHeight(36)
+        csv_btn.setObjectName("secondaryButton")
         csv_btn.clicked.connect(self._export_csv)
         json_btn = QPushButton("JSON")
         json_btn.setMinimumHeight(36)
+        json_btn.setObjectName("secondaryButton")
         json_btn.clicked.connect(self._export_json)
         for b in [pdf_btn, csv_btn, json_btn]:
             eg_l.addWidget(b)
@@ -84,7 +88,7 @@ class StatisticsWindow(QWidget):
             ("focus_chart",  "Статус фокус-сессий:"),
         ]:
             lbl = QLabel(label)
-            lbl.setStyleSheet("font-weight: bold;")
+            lbl.setProperty("role", "boldText")
             cg_l.addWidget(lbl)
             chart = StatisticsChart()
             chart.setMinimumHeight(230)
@@ -111,11 +115,11 @@ class StatisticsWindow(QWidget):
         cl = QVBoxLayout(f)
         cl.setContentsMargins(15, 12, 15, 12)
         tl = QLabel(title)
-        tl.setStyleSheet("font-size: 12px; color: #666;")
+        tl.setProperty("role", "mutedSmallText")
         cl.addWidget(tl)
         vl = QLabel(value)
         vl.setObjectName("valueLabel")
-        vl.setStyleSheet("font-size: 28px; font-weight: bold;")
+        vl.setProperty("role", "bigValueLabel")
         cl.addWidget(vl)
         return f
 

@@ -28,8 +28,8 @@ class GoalDetailDialog(QDialog):
         layout.setSpacing(14)
         layout.setContentsMargins(25, 25, 25, 25)
 
-        title = QLabel(f"{self.goal_data.get('name', '')}")
-        title.setStyleSheet("font-size: 18px; font-weight: bold;")
+        title = QLabel(f"🎯 {self.goal_data.get('name', '')}")
+        title.setProperty("role", "sectionTitle")
         title.setWordWrap(True)
         layout.addWidget(title)
 
@@ -73,10 +73,12 @@ class GoalDetailDialog(QDialog):
         btn_row.setSpacing(10)
         complete_btn = QPushButton("Отметить выполненной")
         complete_btn.setMinimumHeight(44)
+        complete_btn.setObjectName("primaryButton")
         complete_btn.clicked.connect(self._complete)
         btn_row.addWidget(complete_btn)
         edit_btn = QPushButton("✎ Редактировать")
         edit_btn.setMinimumHeight(44)
+        edit_btn.setObjectName("secondaryButton")
         edit_btn.clicked.connect(self._edit)
         btn_row.addWidget(edit_btn)
         close_btn = QPushButton("Закрыть")
@@ -93,7 +95,7 @@ class GoalDetailDialog(QDialog):
         db = SessionLocal()
         try:
             GoalService(db).complete_goal(goal_id, self.user_id)
-            QMessageBox.information(self, "Успех", "Цель выполнена!")
+            QMessageBox.information(self, "Успех", "Цель выполнена! 🎉")
             self.accept()
         except Exception as e:
             QMessageBox.warning(self, "Ошибка", str(e))

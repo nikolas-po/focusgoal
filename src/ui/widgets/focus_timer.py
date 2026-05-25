@@ -109,37 +109,33 @@ class FocusTimer(QWidget):
     def _setup_ui(self):
         self.setWindowTitle("FocusGoal — Режим фокуса")
         self.setMinimumSize(480, 380)
-        self.setStyleSheet("background-color: palette(window); color: palette(windowText);")
         layout = QVBoxLayout(self)
         layout.setAlignment(Qt.AlignCenter)
         layout.setSpacing(20)
         layout.setContentsMargins(40, 40, 40, 40)
 
         title = QLabel("Режим фокуса")
-        title.setStyleSheet("font-size: 20px; font-weight: bold;")
+        title.setProperty("role", "dialogTitle")
         title.setAlignment(Qt.AlignCenter)
         layout.addWidget(title)
 
         self.time_label = QLabel(self._fmt(self.remaining_seconds))
-        self.time_label.setStyleSheet(
-            "font-size: 72px; font-weight: bold; color: #4CAF50; letter-spacing: 4px;"
-        )
+        self.time_label.setProperty("role", "focusTimerTime")
+        self.time_label.setProperty("state", "normal")
         self.time_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.time_label)
 
         self.progress = QProgressBar()
+        self.progress.setObjectName("focusTimerProgress")
         self.progress.setRange(0, self.total_seconds)
         self.progress.setValue(self.total_seconds)
         self.progress.setTextVisible(False)
         self.progress.setFixedHeight(14)
-        self.progress.setStyleSheet(
-            "QProgressBar { border:none; border-radius:7px; background:#e0e0e0; }"
-            "QProgressBar::chunk { background:#4CAF50; border-radius:7px; }"
-        )
         layout.addWidget(self.progress)
 
         self.info_label = QLabel(f"Сессия: {self.duration_minutes} мин")
-        self.info_label.setStyleSheet("font-size: 13px; color: #666;")
+        self.info_label.setProperty("role", "focusTimerInfo")
+        self.info_label.setProperty("state", "normal")
         self.info_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.info_label)
 
@@ -148,29 +144,19 @@ class FocusTimer(QWidget):
         btn_row.setSpacing(15)
 
         self.start_btn = QPushButton("Старт")
+        self.start_btn.setObjectName("primaryButton")
         self.start_btn.setFixedSize(130, 50)
-        self.start_btn.setStyleSheet(
-            "QPushButton { background:#4CAF50; color:white; border:none; border-radius:8px; "
-            "font-size:15px; font-weight:bold; } QPushButton:hover { background:#45a049; }"
-        )
         self.start_btn.clicked.connect(self.start)
 
         self.pause_btn = QPushButton("Пауза")
+        self.pause_btn.setObjectName("warningButton")
         self.pause_btn.setFixedSize(130, 50)
         self.pause_btn.setEnabled(False)
-        self.pause_btn.setStyleSheet(
-            "QPushButton { background:#FFC107; color:white; border:none; border-radius:8px; "
-            "font-size:15px; font-weight:bold; } QPushButton:hover { background:#FFB300; }"
-            "QPushButton:disabled { background:#cccccc; }"
-        )
         self.pause_btn.clicked.connect(self.pause)
 
         self.stop_btn = QPushButton("Завершить")
+        self.stop_btn.setObjectName("dangerButton")
         self.stop_btn.setFixedSize(130, 50)
-        self.stop_btn.setStyleSheet(
-            "QPushButton { background:#FF5252; color:white; border:none; border-radius:8px; "
-            "font-size:15px; font-weight:bold; } QPushButton:hover { background:#E53935; }"
-        )
         self.stop_btn.clicked.connect(self._stop)
 
         btn_row.addWidget(self.start_btn)
@@ -179,7 +165,7 @@ class FocusTimer(QWidget):
         layout.addLayout(btn_row)
 
         hint = QLabel("Ctrl+Shift+Esc — экстренное завершение")
-        hint.setStyleSheet("font-size: 10px; color: #aaa;")
+        hint.setProperty("role", "hintText")
         hint.setAlignment(Qt.AlignCenter)
         layout.addWidget(hint)
 
@@ -205,7 +191,7 @@ class FocusTimer(QWidget):
             self._timer.stop()
             self._monitor_timer.stop()
             self.start_btn.setEnabled(True)
-            self.start_btn.setText("▶ Продолжить")
+            self.start_btn.setText("Продолжить")
             self.pause_btn.setEnabled(False)
 
     def _stop(self):
@@ -224,13 +210,15 @@ class FocusTimer(QWidget):
             self.progress.setValue(self.remaining_seconds)
             if self.remaining_seconds == 300:
                 self.info_label.setText("Осталось 5 минут!")
-                self.info_label.setStyleSheet("font-size:13px; color:#FF5252; font-weight:bold;")
+                self.info_label.setProperty("state", "warning")
+                self.info_label.style().unpolish(self.info_label)
+                self.info_label.style().polish(self.info_label)
         else:
             self._timer.stop()
             self.is_running = False
-            self.time_label.setStyleSheet(
-                "font-size:72px; font-weight:bold; color:#FF5252; letter-spacing:4px;"
-            )
+            self.time_label.setProperty("state", "finished")
+            self.time_label.style().unpolish(self.time_label)
+            self.time_label.style().polish(self.time_label)
             self._finish(cancelled=False)
 
     def _finish(self, cancelled: bool):

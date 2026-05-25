@@ -18,23 +18,23 @@ class ErrorDialog(QDialog):
         layout.setContentsMargins(25, 25, 25, 25)
 
         icon = QLabel("❌")
-        icon.setStyleSheet("font-size: 44px;")
+        icon.setProperty("role", "largeIcon")
         icon.setAlignment(Qt.AlignCenter)
         layout.addWidget(icon)
 
         title_lbl = QLabel(title)
-        title_lbl.setStyleSheet("font-size: 16px; font-weight: bold;")
+        title_lbl.setProperty("role", "sectionHeader")
         title_lbl.setAlignment(Qt.AlignCenter)
         layout.addWidget(title_lbl)
 
         msg_lbl = QLabel(message)
         msg_lbl.setWordWrap(True)
-        msg_lbl.setStyleSheet("font-size: 13px;")
+        msg_lbl.setProperty("role", "bodyText")
         layout.addWidget(msg_lbl)
 
         if details:
             det_lbl = QLabel("Детали:")
-            det_lbl.setStyleSheet("font-weight: bold;")
+            det_lbl.setProperty("role", "boldText")
             layout.addWidget(det_lbl)
             det_text = QTextEdit()
             det_text.setReadOnly(True)
@@ -44,11 +44,11 @@ class ErrorDialog(QDialog):
 
         hints = QLabel(
             "Рекомендации:\n"
-            "Проверьте подключение к базе данных\n"
-            "Проверьте свободное место на диске\n"
-            "Попробуйте восстановить из резервной копии"
+            "• Проверьте подключение к базе данных\n"
+            "• Проверьте свободное место на диске\n"
+            "• Попробуйте восстановить из резервной копии"
         )
-        hints.setStyleSheet("color: #666; font-size: 11px;")
+        hints.setProperty("role", "mutedSmallText")
         hints.setWordWrap(True)
         layout.addWidget(hints)
 

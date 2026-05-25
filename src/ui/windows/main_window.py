@@ -11,68 +11,55 @@ from src.config.settings import Settings
 class MainWindow(QMainWindow):
     def __init__(self, user_data: dict, parent=None):
         super().__init__(parent)
-        self.user_id = user_data["id"]
+        self.user_id  = user_data["id"]
         self.nickname = user_data["nickname"]
         self.settings = Settings()
         self.setWindowTitle(f"FocusGoal — {self.nickname}")
-        self.setMinimumSize(1000, 680)
-        self._loaded_tabs = set()  # индексы вкладок, для которых уже загружены данные
+        self.setMinimumSize(900, 600)
         self._setup_ui()
         self._setup_menu()
         self._setup_statusbar()
         self._setup_inactivity_timer()
         QTimer.singleShot(300, self.dashboard_tab.load_statistics)
 
+    # Настройка интерфейса
+
     def _setup_ui(self):
         self.tabs = QTabWidget()
         self.tabs.setTabPosition(QTabWidget.West)
-        self.tabs.currentChanged.connect(self._on_tab_activated)
 
-        from src.ui.windows.dashboard_window import DashboardWindow
-        self.dashboard_tab = DashboardWindow(self.user_id, self)
-        self.tabs.addTab(self.dashboard_tab, "Главная")
-
-        from src.ui.windows.goal_window import GoalWindow
-        self.goal_tab = GoalWindow(self.user_id)
-        self.tabs.addTab(self.goal_tab, "Цели")
-
-        from src.ui.windows.habit_window import HabitWindow
-        self.habit_tab = HabitWindow(self.user_id)
-        self.tabs.addTab(self.habit_tab, "Привычки")
-
-        from src.ui.windows.focus_window import FocusWindow
-        self.focus_tab = FocusWindow(self.user_id)
-        self.tabs.addTab(self.focus_tab, "Фокус")
-
+        from src.ui.windows.dashboard_window  import DashboardWindow
+        from src.ui.windows.goal_window       import GoalWindow
+        from src.ui.windows.habit_window      import HabitWindow
+        from src.ui.windows.focus_window      import FocusWindow
         from src.ui.windows.statistics_window import StatisticsWindow
-        self.stats_tab = StatisticsWindow(self.user_id)
-        self.tabs.addTab(self.stats_tab, "Статистика")
+        from src.ui.windows.blacklist_window  import BlacklistWindow
+        from src.ui.windows.settings_window   import SettingsWindow
+        from src.ui.windows.backup_window     import BackupWindow
 
-        from src.ui.windows.blacklist_window import BlacklistWindow
+        self.dashboard_tab = DashboardWindow(self.user_id)
+        self.goal_tab      = GoalWindow(self.user_id)
+        self.habit_tab     = HabitWindow(self.user_id)
+        self.focus_tab     = FocusWindow(self.user_id)
+        self.stats_tab     = StatisticsWindow(self.user_id)
         self.blacklist_tab = BlacklistWindow(self.user_id)
-        self.tabs.addTab(self.blacklist_tab, "Чёрный список")
+        self.settings_tab  = SettingsWindow(self.user_id)
+        self.backup_tab    = BackupWindow(self.user_id)
 
-        from src.ui.windows.settings_window import SettingsWindow
-        self.settings_tab = SettingsWindow(self.user_id)
-        self.tabs.addTab(self.settings_tab, "Настройки")
-
-        from src.ui.windows.backup_window import BackupWindow
-        self.backup_tab = BackupWindow(self.user_id)
-        self.tabs.addTab(self.backup_tab, "Резервные копии")
+        for widget, label in [
+            (self.dashboard_tab,  "Главная"),
+            (self.goal_tab,       "Цели"),
+            (self.habit_tab,      "Привычки"),
+            (self.focus_tab,      "Фокус"),
+            (self.stats_tab,      "Статистика"),
+            (self.blacklist_tab,  "Чёрный список"),
+            (self.settings_tab,   "Настройки"),
+            (self.backup_tab,     "Резервные копии"),
+        ]:
+            self.tabs.addTab(widget, label)
 
         self.setCentralWidget(self.tabs)
-
-    def _on_tab_activated(self, index):
-        """Загружаем данные для вкладки при первом переключении"""
-        if index in self._loaded_tabs:
-            return
-        self._loaded_tabs.add(index)
-        if index == 1:
-            self.goal_tab.load_goals()
-        elif index == 2:
-            self.habit_tab._load_habits()
-        elif index == 4:
-            self.stats_tab._load_statistics()
+        self.tabs.currentChanged.connect(self._on_tab_changed)
 
     def _setup_menu(self):
         menu = self.menuBar()
@@ -124,7 +111,6 @@ class MainWindow(QMainWindow):
         prof_a.triggered.connect(self._open_profile)
         menu.addAction(prof_a)
 
-
         # Помощь
         helpm = menu.addMenu("Помощь")
         about_a = QAction("О приложении", self)
@@ -140,11 +126,14 @@ class MainWindow(QMainWindow):
         self._status_timer.start(60_000)
 
     def _setup_inactivity_timer(self):
+        """Автоблокировка при бездействии (ТЗ: безопасность)."""
         self._inactivity_seconds = 0
-        self._inactivity_limit = 15 * 60
-        self._inactivity_timer = QTimer(self)
+        self._inactivity_limit   = 15 * 60
+        self._inactivity_timer   = QTimer(self)
         self._inactivity_timer.timeout.connect(self._check_inactivity)
         self._inactivity_timer.start(60_000)
+
+    # Время выполнения
 
     def _check_inactivity(self):
         self._inactivity_seconds += 60
@@ -161,14 +150,14 @@ class MainWindow(QMainWindow):
         dlg.setMinimumWidth(350)
         l = QVBoxLayout(dlg)
         l.addWidget(QLabel(
-            "🔒 Сессия заблокирована из-за бездействия.\nВведите пароль для продолжения:"
+            "Сессия заблокирована из-за бездействия.\nВведите пароль для продолжения:"
         ))
         pwd = QLineEdit()
         pwd.setEchoMode(QLineEdit.Password)
         pwd.setMinimumHeight(40)
         l.addWidget(pwd)
         err = QLabel("")
-        err.setStyleSheet("color: #FF5252;")
+        err.setObjectName("unlockErrorLabel")
         l.addWidget(err)
         ok_btn = QPushButton("Разблокировать")
         ok_btn.setMinimumHeight(42)
@@ -204,6 +193,7 @@ class MainWindow(QMainWindow):
         apply_theme(theme_state.current_theme, theme_state.current_font_size)
         safe_raise(self._focus_timer)
 
+    # Сброс таймера при любом взаимодействии
     def mousePressEvent(self, e):
         self._inactivity_seconds = 0
         super().mousePressEvent(e)
@@ -212,22 +202,28 @@ class MainWindow(QMainWindow):
         self._inactivity_seconds = 0
         super().keyPressEvent(e)
 
+    def _on_tab_changed(self, index: int):
+        self._inactivity_seconds = 0
+        if index == 1:   self.goal_tab.load_goals()
+        elif index == 2: self.habit_tab._load_habits()
+        elif index == 4: self.stats_tab._load_statistics()
+
     def _refresh_status(self):
         from datetime import datetime
         self.status_bar.showMessage(
             f"{self.nickname} | {datetime.now().strftime('%H:%M')} | FocusGoal v1.0"
         )
 
+    # Действия
+
     def _new_goal(self):
         from src.ui.dialogs.create_goal_dialog import CreateGoalDialog
         if CreateGoalDialog(self.user_id, self).exec_():
-            self.dashboard_tab.load_statistics()
             self.goal_tab.load_goals()
 
     def _new_habit(self):
         from src.ui.dialogs.create_habit_dialog import CreateHabitDialog
         if CreateHabitDialog(self.user_id, self).exec_():
-            self.dashboard_tab.load_statistics()
             self.habit_tab._load_habits()
 
     def _open_export(self):
@@ -249,8 +245,8 @@ class MainWindow(QMainWindow):
         safe_raise(self._profile_win)
         self._profile_win._load()
 
-
     def _logout(self):
+        """Выйти из аккаунта: очистить remember-me и показать окно входа."""
         reply = QMessageBox.question(
             self, "Выход из аккаунта",
             "Выйти из аккаунта?\n\nЗапомненные данные будут очищены.",
@@ -259,19 +255,24 @@ class MainWindow(QMainWindow):
         if reply != QMessageBox.Yes:
             return
 
+        # Остановить таймеры
         self._status_timer.stop()
         self._inactivity_timer.stop()
 
+        # Очистить сохранённые данные входа
         from src.ui.windows.login_window import LoginWindow
         LoginWindow.clear_remembered(self.settings)
 
+        # Открыть окно входа
         self._login_win = LoginWindow(self.settings)
         self._login_win.show()
 
+        # Закрыть главное окно без подтверждения
         self._skip_close_confirm = True
         self.close()
 
     def _quit_app(self):
+        """Закрыть приложение с подтверждением."""
         if QMessageBox.question(
             self, "Закрыть FocusGoal?", "Закрыть приложение?",
             QMessageBox.Yes | QMessageBox.No
@@ -288,7 +289,7 @@ class MainWindow(QMainWindow):
             self, "О FocusGoal",
             "<b>FocusGoal v1.0.0</b><br><br>"
             "Система управления целями, привычками и фокус-сессиями.<br><br>"
-            "© 2026 FocusGoal | Лицензия: Отсутсвует"
+            "© 2026 FocusGoal | Лицензия: отсутсвует"
         )
 
     def _stop_timers(self):
@@ -302,6 +303,7 @@ class MainWindow(QMainWindow):
             pass
 
     def closeEvent(self, event):
+        # Пропустить подтверждение при выходе/выходе из аккаунта
         if getattr(self, "_skip_close_confirm", False):
             self._stop_timers()
             event.accept()

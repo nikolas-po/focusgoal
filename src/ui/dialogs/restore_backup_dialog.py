@@ -29,14 +29,14 @@ class RestoreBackupDialog(QDialog):
         layout.setContentsMargins(25, 25, 25, 25)
 
         title = QLabel("Восстановление данных")
-        title.setStyleSheet("font-size: 20px; font-weight: bold;")
+        title.setProperty("role", "dialogTitle")
         layout.addWidget(title)
 
         warn = QLabel(
             "ВНИМАНИЕ! Текущие данные будут заменены данными из выбранной копии.\n"
             "Перед восстановлением автоматически создастся резервная копия текущего состояния."
         )
-        warn.setStyleSheet("color: #FF5252; font-size: 12px; font-weight: bold;")
+        warn.setProperty("role", "errorTextBold")
         warn.setWordWrap(True)
         layout.addWidget(warn)
 
@@ -53,7 +53,7 @@ class RestoreBackupDialog(QDialog):
         il = QFormLayout(info_g)
         self.info_lbl = QLabel("Выберите копию")
         self.info_lbl.setWordWrap(True)
-        self.info_lbl.setStyleSheet("font-size: 12px; color: #666;")
+        self.info_lbl.setProperty("role", "smallText")
         il.addRow(self.info_lbl)
         layout.addWidget(info_g)
 
@@ -65,12 +65,14 @@ class RestoreBackupDialog(QDialog):
         btn_row = QHBoxLayout()
         self.restore_btn = QPushButton("Восстановить")
         self.restore_btn.setMinimumHeight(46)
+        self.restore_btn.setObjectName("warningButton")
         self.restore_btn.setEnabled(False)
         self.restore_btn.clicked.connect(self._restore)
         btn_row.addWidget(self.restore_btn)
 
         refresh_btn = QPushButton("↻ Обновить")
         refresh_btn.setMinimumHeight(46)
+        refresh_btn.setObjectName("secondaryButton")
         refresh_btn.clicked.connect(self._load)
         btn_row.addWidget(refresh_btn)
 
@@ -80,17 +82,6 @@ class RestoreBackupDialog(QDialog):
         cancel_btn.clicked.connect(self.reject)
         btn_row.addWidget(cancel_btn)
         layout.addLayout(btn_row)
-
-        self.setStyleSheet("""
-            QDialog { background: palette(window); }
-            QGroupBox { font-weight: bold; border: 1px solid palette(mid);
-                        border-radius: 8px; margin-top: 8px; padding-top: 12px; }
-            QGroupBox::title { subcontrol-origin: margin; left: 10px; padding: 0 4px; }
-            QPushButton { background: #FF9800; color: white; border: none;
-                          border-radius: 4px; font-weight: bold; font-size: 14px; }
-            QPushButton:hover { background: #F57C00; }
-            QPushButton#cancelButton { background: #9E9E9E; }
-        """)
 
     def _load(self):
         self.backup_list.clear()
@@ -111,7 +102,7 @@ class RestoreBackupDialog(QDialog):
                 item.setData(Qt.UserRole, b["path"])
                 self.backup_list.addItem(item)
         except Exception as e:
-            item = QListWidgetItem(f"⚠️ Ошибка: {str(e)}")
+            item = QListWidgetItem(f"Ошибка: {str(e)}")
             item.setFlags(Qt.NoItemFlags)
             self.backup_list.addItem(item)
         finally:

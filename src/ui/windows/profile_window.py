@@ -27,17 +27,17 @@ class ProfileWindow(QWidget):
         # Шапка профиля
         header = QHBoxLayout()
         avatar = QLabel("👤")
-        avatar.setStyleSheet("font-size: 56px;")
+        avatar.setProperty("role", "xxLargeIcon")
         header.addWidget(avatar)
         info = QVBoxLayout()
         self.name_lbl = QLabel(self.nickname)
-        self.name_lbl.setStyleSheet("font-size: 22px; font-weight: bold;")
+        self.name_lbl.setProperty("role", "pageTitle")
         info.addWidget(self.name_lbl)
         self.reg_lbl = QLabel("")
-        self.reg_lbl.setStyleSheet("font-size: 12px; color: #888;")
+        self.reg_lbl.setProperty("role", "mutedText")
         info.addWidget(self.reg_lbl)
         self.email_lbl = QLabel("")
-        self.email_lbl.setStyleSheet("font-size: 12px; color: #666;")
+        self.email_lbl.setProperty("role", "smallText")
         info.addWidget(self.email_lbl)
         header.addLayout(info)
         header.addStretch()
@@ -103,17 +103,15 @@ class ProfileWindow(QWidget):
     def _make_card(self, title: str, value: str) -> QFrame:
         f = QFrame()
         f.setObjectName("profileCard")
-        f.setStyleSheet(
-            "QFrame#profileCard { background: palette(base); border: 1px solid palette(mid); border-radius: 8px; }"
-        )
+        f.setObjectName("profileCard")
         cl = QVBoxLayout(f)
         cl.setContentsMargins(12, 10, 12, 10)
         tl = QLabel(title)
-        tl.setStyleSheet("font-size: 11px; color: #666;")
+        tl.setProperty("role", "mutedText")
         cl.addWidget(tl)
         vl = QLabel(value)
         vl.setObjectName("val")
-        vl.setStyleSheet("font-size: 22px; font-weight: bold;")
+        vl.setProperty("role", "pageTitle")
         cl.addWidget(vl)
         return f
 

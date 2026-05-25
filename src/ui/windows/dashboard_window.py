@@ -8,7 +8,6 @@ from PyQt5.QtCore import Qt, QTimer
 from src.config.database import SessionLocal
 from src.services.statistics_service import StatisticsService
 
-
 class DashboardWindow(QWidget):
     def __init__(self, user_id: int = None, parent=None):
         super().__init__(parent)
@@ -21,9 +20,7 @@ class DashboardWindow(QWidget):
     def _setup_ui(self):
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
-        scroll.setStyleSheet("background: transparent;")
         container = QWidget()
-        container.setStyleSheet("background: transparent;")
         layout = QVBoxLayout(container)
         layout.setContentsMargins(25, 25, 25, 25)
         layout.setSpacing(20)
@@ -31,7 +28,7 @@ class DashboardWindow(QWidget):
         # Заголовок
         header = QHBoxLayout()
         title = QLabel("Главная панель")
-        title.setStyleSheet("font-size: 22px; font-weight: bold;")
+        title.setProperty("role", "pageTitle")
         header.addWidget(title)
         header.addStretch()
         refresh_btn = QPushButton("Обновить")
@@ -41,7 +38,7 @@ class DashboardWindow(QWidget):
         layout.addLayout(header)
 
         date_lbl = QLabel(f"Сегодня: {datetime.now().strftime('%d.%m.%Y')}")
-        date_lbl.setStyleSheet("font-size: 12px; color: palette(mid);")
+        date_lbl.setProperty("role", "smallText")
         layout.addWidget(date_lbl)
 
         # Карточки статистики
@@ -58,39 +55,33 @@ class DashboardWindow(QWidget):
         layout.addLayout(grid)
 
         # Быстрые действия
-        qa_label = QLabel("Быстрые действия")
-        qa_label.setStyleSheet("font-size: 16px; font-weight: bold; color: palette(text);")
+        qa_label = QLabel("⚡ Быстрые действия")
+        qa_label.setProperty("role", "sectionHeader")
         layout.addWidget(qa_label)
 
         btn_row = QHBoxLayout()
         btn_row.setSpacing(12)
-        for text, color, handler in [
-            ("+ Новая цель",   "#4CAF50", self._quick_goal),
-            ("+ Привычка",     "#2196F3", self._quick_habit),
-            ("Фокус",       "#FF9800", self._quick_focus),
-            ("Статистика",  "#9C27B0", self._quick_stats),
+        for text, name, handler in [
+            ("Новая цель",   "dashboardGoalButton", self._quick_goal),
+            ("Привычка",     "dashboardHabitButton", self._quick_habit),
+            ("Фокус",       "dashboardFocusButton", self._quick_focus),
+            ("Статистика",  "dashboardStatsButton", self._quick_stats),
         ]:
             btn = QPushButton(text)
+            btn.setObjectName(name)
             btn.setMinimumHeight(44)
             btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-            btn.setStyleSheet(
-                f"QPushButton {{ background: {color}; color: white; border: none; "
-                f"border-radius: 6px; font-weight: bold; padding: 10px; }}"
-                f"QPushButton:hover {{ opacity: 0.85; }}"
-            )
             btn.clicked.connect(handler)
             btn_row.addWidget(btn)
         layout.addLayout(btn_row)
 
         # Последние события
         ev_title = QLabel("Последние события")
-        ev_title.setStyleSheet("font-size: 16px; font-weight: bold; color: palette(text);")
+        ev_title.setProperty("role", "sectionHeader")
         layout.addWidget(ev_title)
 
         self.events_label = QLabel("Нет данных")
-        self.events_label.setStyleSheet(
-            "font-size: 12px; padding: 10px; border-radius: 6px; color: palette(mid);"
-        )
+        self.events_label.setProperty("role", "infoBoxText")
         self.events_label.setWordWrap(True)
         self.events_label.setAlignment(Qt.AlignTop | Qt.AlignLeft)
         layout.addWidget(self.events_label)
@@ -110,17 +101,17 @@ class DashboardWindow(QWidget):
         cl.setSpacing(4)
 
         tl = QLabel(title)
-        tl.setStyleSheet("font-size: 13px; color: palette(mid);")
+        tl.setProperty("role", "smallText")
         cl.addWidget(tl)
 
         vl = QLabel(value)
         vl.setObjectName("valueLabel")
-        vl.setStyleSheet("font-size: 26px; font-weight: bold;")
+        vl.setProperty("role", "valueLabel")
         cl.addWidget(vl)
 
         sl = QLabel(subtitle)
         sl.setObjectName("subtitleLabel")
-        sl.setStyleSheet("font-size: 11px; color: palette(mid);")
+        sl.setProperty("role", "mutedSmallText")
         cl.addWidget(sl)
         return card
 
@@ -165,15 +156,15 @@ class DashboardWindow(QWidget):
                     .order_by(CompletionLog.completed_at.desc())
                     .limit(5).all())
             if not logs:
-                return "• Нет недавних событий"
+                return "Нет недавних событий"
             lines = []
             for log in logs:
                 dt = log.completed_at.strftime("%d.%m %H:%M")
                 obj = "Цель" if log.object_type_id == 1 else "Привычка"
-                lines.append(f"• {dt} — {obj} выполнена")
+                lines.append(f"{dt} — {obj} выполнена")
             return "\n".join(lines)
         except Exception:
-            return "• Нет данных"
+            return "Нет данных"
 
     def _quick_goal(self):
         from src.ui.dialogs.create_goal_dialog import CreateGoalDialog

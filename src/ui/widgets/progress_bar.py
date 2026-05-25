@@ -12,23 +12,20 @@ class LabeledProgressBar(QWidget):
 
         top_row = QHBoxLayout()
         self.label = QLabel(label)
-        self.label.setStyleSheet("font-size: 12px;")
+        self.label.setProperty("role", "smallText")
         top_row.addWidget(self.label)
         top_row.addStretch()
         self.value_label = QLabel("0%")
-        self.value_label.setStyleSheet("font-size: 12px; color: #4CAF50; font-weight: bold;")
+        self.value_label.setProperty("role", "accentBoldText")
         top_row.addWidget(self.value_label)
         layout.addLayout(top_row)
 
         self.bar = QProgressBar()
+        self.bar.setObjectName("smallProgressBar")
         self.bar.setRange(0, 100)
         self.bar.setValue(0)
         self.bar.setTextVisible(False)
         self.bar.setFixedHeight(10)
-        self.bar.setStyleSheet(
-            "QProgressBar { border-radius: 5px; background: #e0e0e0; border: none; }"
-            "QProgressBar::chunk { background: #4CAF50; border-radius: 5px; }"
-        )
         layout.addWidget(self.bar)
 
     def set_value(self, value: int):

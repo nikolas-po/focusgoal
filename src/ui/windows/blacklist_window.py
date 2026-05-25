@@ -31,14 +31,14 @@ class BlacklistWindow(QWidget):
         layout.setContentsMargins(20, 20, 20, 20)
 
         title = QLabel("Чёрный список приложений")
-        title.setStyleSheet("font-size: 20px; font-weight: bold;")
+        title.setProperty("role", "dialogTitle")
         layout.addWidget(title)
 
         desc = QLabel(
             "Приложения из этого списка блокируются во время фокус-сессии.\n"
             "Уровень «Полная блокировка» требует прав администратора."
         )
-        desc.setStyleSheet("font-size: 12px; color: palette(mid);")
+        desc.setProperty("role", "smallText")
         desc.setWordWrap(True)
         layout.addWidget(desc)
 
@@ -67,7 +67,7 @@ class BlacklistWindow(QWidget):
         self.level_combo.setMinimumHeight(36)
         fl.addRow("Уровень:", self.level_combo)
 
-        add_btn = QPushButton("➕ Добавить в список")
+        add_btn = QPushButton("Добавить в список")
         add_btn.setMinimumHeight(38)
         add_btn.clicked.connect(self._add_app)
         fl.addRow(add_btn)
@@ -159,13 +159,9 @@ class BlacklistWindow(QWidget):
                     self.table.setItem(i, col, item)
 
                 # Кнопка удаления — фиксированный размер, вписывается в ячейку
-                del_btn = QPushButton("🗑 Удалить")
+                del_btn = QPushButton("Удалить")
+                del_btn.setObjectName("dangerButton")
                 del_btn.setFixedHeight(28)
-                del_btn.setStyleSheet(
-                    "QPushButton{background:#FF5252;color:white;border:none;"
-                    "border-radius:4px;padding:0 6px;font-size:11px;}"
-                    "QPushButton:hover{background:#E53935;}"
-                )
                 del_btn.clicked.connect(lambda _, aid=app.id: self._delete_app(aid))
                 # Центрировать кнопку в ячейке
                 cell_w = QWidget()

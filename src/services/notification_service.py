@@ -120,30 +120,28 @@ class NotificationService:
         """Проверить и отправить запланированные уведомления"""
         try:
             from src.models.notification import NotificationSchedule
-            from datetime import datetime, timezone
-            
+            from datetime import datetime, timedelta
+
             now = datetime.now()
-            
-            # Найти ожидающие уведомления со сроком отправки <= now
-            pending_notifications = self.db.query(NotificationSchedule).filter(
-                NotificationSchedule.delivery_status_id == 2,  # PENDING
-                NotificationSchedule.send_at <= now
+            time_window = now - timedelta(minutes=5)
+
+            pending = self.db.query(NotificationSchedule).filter(
+                NotificationSchedule.delivery_status_id == 2,
+                NotificationSchedule.send_at.between(time_window, now)
             ).all()
-            
-            for notification in pending_notifications:
-                # Отправить уведомление
-                self.send_notification("Напоминание", notification.content)
-                
-                # Обновить статус на отправлено
-                notification.delivery_status_id = 1 
-                self.db.add(notification)
-            
-            if pending_notifications:
+
+            sent = 0
+            for n in pending:
+                self.send_notification("Напоминание", n.content)
+                self.db.delete(n)   # удаляем, чтобы избежать нарушения CHECK
+                sent += 1
+
+            if sent:
                 self.db.commit()
-                print(f"[NotificationService] Отправлено {len(pending_notifications)} уведомлений")
-            
+                print(f"[NotificationService] Отправлено {sent} уведомлений")
+
         except Exception as e:
-            print(f"[NotificationService] Ошибка при проверке запланированных уведомлений: {e}")
+            print(f"[NotificationService] Ошибка при проверке уведомлений: {e}")
             try:
                 self.db.rollback()
             except:

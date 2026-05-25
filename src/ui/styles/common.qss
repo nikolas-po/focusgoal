@@ -1,44 +1,90 @@
-/*
+/* 
    FocusGoal — общие стили (не зависят от темы)
    Размер шрифта подставляется: {font_size}
-   */
+    */
 
 * {
     font-size: {font_size}px;
     font-family: Arial, sans-serif;
 }
 
-/* Базовые виджеты */
+/*  Базовые виджеты  */
 QWidget       { color: palette(windowText); background-color: palette(window); }
 QMainWindow   { background-color: palette(window); }
-QDialog       { background-color: palette(window); }
+QDialog       { background-color: palette(window); color: palette(windowText); }
 QLabel        { color: palette(windowText); background: transparent; }
 QScrollArea   { border: none; background: transparent; }
 
-/* Кнопки (первичные) */
+/*  Кнопки (первичные)  */
 QPushButton {
     background-color: #4CAF50;
     color: #ffffff;
-    border: none;
+    border: 1px solid #3d8b40;
     border-radius: 6px;
     padding: 10px 20px;
     font-weight: bold;
     min-height: 40px;
     min-width: 80px;
-    /* cursor: pointinghand; */
+    outline: none;
 }
-QPushButton:hover    { background-color: #45a049; }
-QPushButton:pressed  { background-color: #3d8b40; }
-QPushButton:focus    { outline: none; }
-QPushButton:disabled { background-color: #cccccc; color: #666666; }
+QPushButton:hover    { background-color: #43A047; border-color: #2E7D32; }
+QPushButton:pressed  { background-color: #2E7D32; border-color: #1B4620; }
+QPushButton:disabled { background-color: palette(mid); color: palette(midlight); border-color: palette(mid); }
 
-/* Вторичные кнопки */
-QPushButton#dangerButton         { background-color: #FF5252; }
-QPushButton#dangerButton:hover   { background-color: #E53935; }
-QPushButton#secondaryButton      { background-color: #2196F3; }
-QPushButton#secondaryButton:hover { background-color: #1976D2; }
+/* Кнопки по ролям */
+QPushButton#primaryButton          { background-color: #4CAF50; color: #ffffff; border: 1px solid #3d8b40; }
+QPushButton#primaryButton:hover    { background-color: #45a049; border-color: #2E7D32; }
+QPushButton#primaryButton:pressed  { background-color: #2E7D32; }
+QPushButton#dangerButton           { background-color: #FF5252; color: #ffffff; border: 1px solid #F43535; }
+QPushButton#dangerButton:hover     { background-color: #E53935; border-color: #C4302A; }
+QPushButton#dangerButton:pressed   { background-color: #C82C23; }
+QPushButton#secondaryButton        { background-color: #2196F3; color: #ffffff; border: 1px solid #1976D2; }
+QPushButton#secondaryButton:hover  { background-color: #1976D2; border-color: #1565C0; }
+QPushButton#secondaryButton:pressed { background-color: #1565C0; }
+QPushButton#warningButton          { background-color: #FFC107; color: #ffffff; border: 1px solid #FFB300; }
+QPushButton#warningButton:hover    { background-color: #FFB300; border-color: #FFA000; }
+QPushButton#warningButton:pressed  { background-color: #FFA000; }
+QPushButton#cancelButton           { background-color: #9E9E9E; color: #ffffff; border: 1px solid #757575; }
+QPushButton#cancelButton:hover     { background-color: #757575; border-color: #616161; }
+QPushButton#cancelButton:pressed   { background-color: #616161; }
+QPushButton#linkButton             { background: transparent; color: palette(highlight); border: none; }
+QPushButton#linkButton:hover       { text-decoration: underline; }
+QPushButton#transparentButton      { background: transparent; border: none; }
+QPushButton#dashboardGoalButton    { background-color: #4CAF50; color: white; border: 1px solid #3d8b40; }
+QPushButton#dashboardGoalButton:hover { background-color: #45a049; border-color: #2E7D32; }
+QPushButton#dashboardHabitButton   { background-color: #2196F3; color: white; border: 1px solid #1976D2; }
+QPushButton#dashboardHabitButton:hover { background-color: #1976D2; border-color: #1565C0; }
+QPushButton#dashboardFocusButton   { background-color: #FF9800; color: white; border: 1px solid #F57C00; }
+QPushButton#dashboardFocusButton:hover { background-color: #F57C00; border-color: #E65100; }
+QPushButton#dashboardStatsButton   { background-color: #9C27B0; color: white; border: 1px solid #7B1FA2; }
+QPushButton#dashboardStatsButton:hover { background-color: #7B1FA2; border-color: #6A1B9A; }
+QPushButton#circlePrimaryButton    { background-color: #4CAF50; color: white; border: 1px solid #3d8b40; border-radius: 18px; font-size: 16px; font-weight: bold; padding: 0px; }
+QPushButton#circlePrimaryButton:hover { background-color: #45a049; border-color: #2E7D32; }
+QPushButton#circleSecondaryButton  { background-color: #2196F3; color: white; border: 1px solid #1976D2; border-radius: 18px; font-size: 16px; padding: 0px; }
+QPushButton#circleSecondaryButton:hover { background-color: #1976D2; border-color: #1565C0; }
+QPushButton#dangerCircleButton     { background-color: #FF5252; color: white; border: 1px solid #F43535; border-radius: 18px; font-size: 16px; padding: 0px; }
+QPushButton#dangerCircleButton:hover { background-color: #E53935; border-color: #C4302A; }
 
-/* Поля ввода */
+QProgressBar {
+    border: 1px solid palette(mid);
+    border-radius: 6px;
+    background-color: palette(alternateBase);
+    color: palette(windowText);
+    text-align: center;
+}
+QProgressBar::chunk {
+    border-radius: 6px;
+    background-color: palette(highlight);
+}
+QProgressBar#smallProgressBar { min-height: 10px; }
+
+QFrame#habitCard { background-color: palette(base); border: 2px solid palette(mid); border-radius: 10px; }
+QFrame#habitCard[positiveStreak="true"] { border-color: #4CAF50; }
+QFrame#goalCard { background-color: palette(base); border: 2px solid palette(mid); border-radius: 10px; }
+QFrame#goalCard[statusBorder="2"] { border-color: #4CAF50; }
+QFrame#goalCard[statusBorder="3"] { border-color: #FF5252; }
+
+/*  Поля ввода  */
 QLineEdit, QComboBox, QSpinBox, QTimeEdit, QDateEdit {
     border: 1px solid palette(mid);
     border-radius: 4px;
@@ -50,7 +96,7 @@ QLineEdit, QComboBox, QSpinBox, QTimeEdit, QDateEdit {
 QLineEdit:focus, QComboBox:focus, QSpinBox:focus,
 QTimeEdit:focus, QDateEdit:focus { border: 2px solid #4CAF50; }
 
-/* Группы */
+/*  Группы  */
 QGroupBox {
     font-weight: bold;
     border: 1px solid palette(mid);
@@ -66,7 +112,7 @@ QGroupBox::title {
     color: palette(windowText);
 }
 
-/* Чекбоксы/радио */
+/*  Чекбоксы/радио  */
 QCheckBox, QRadioButton {
     spacing: 8px;
     background: transparent;
@@ -74,7 +120,7 @@ QCheckBox, QRadioButton {
     color: palette(windowText);
 }
 
-/* Вкладки */
+/*  Вкладки  */
 QTabWidget::pane { border: 1px solid palette(mid); border-radius: 4px; }
 QTabBar::tab {
     padding: 10px 20px;
@@ -88,14 +134,14 @@ QTabBar::tab {
 QTabBar::tab:selected { font-weight: bold; background: #4CAF50; color: #ffffff; }
 QTabBar::tab:hover    { background: palette(highlight); color: palette(highlightedText); }
 
-/* Прокрутка */
+/*  Прокрутка  */
 QScrollBar:vertical   { width: 12px; border-radius: 6px; }
 QScrollBar::handle:vertical { border-radius: 6px; min-height: 20px; background: palette(mid); }
 QScrollBar::handle:vertical:hover { background: palette(dark); }
 QScrollArea { background: palette(window); }
 QScrollArea QWidget { background: transparent; }
 
-/* Прогресс */
+/*  Прогресс  */
 QProgressBar {
     border: 1px solid palette(mid);
     border-radius: 4px;
@@ -106,25 +152,24 @@ QProgressBar {
 }
 QProgressBar::chunk { border-radius: 3px; background-color: #4CAF50; }
 
-/* Меню */
+/*  Меню  */
 QMenu { border: 1px solid palette(mid); border-radius: 4px; background: palette(base); }
 QMenu::item { padding: 8px 30px 8px 20px; color: palette(windowText); }
 QMenu::item:selected { background: #4CAF50; color: #ffffff; font-weight: bold; }
 QMenuBar { background: palette(window); color: palette(windowText); }
 QMenuBar::item:selected { background: #4CAF50; color: #ffffff; }
 
-/* Toolbar */
+/*  Toolbar  */
 QToolButton {
     background-color: transparent;
     border: 1px solid transparent;
     border-radius: 4px;
     padding: 5px 10px;
     color: palette(windowText);
-    /* cursor: pointinghand; */
 }
 QToolButton:hover { border: 1px solid palette(mid); background: palette(alternateBase); }
 
-/* Таблицы/списки */
+/*  Таблицы/списки  */
 QHeaderView::section {
     padding: 8px;
     border: 1px solid palette(mid);
@@ -146,7 +191,7 @@ QTableWidget::item:selected, QListWidget::item:selected {
     font-weight: bold;
 }
 
-/* Текстовые поля */
+/*  Текстовые поля  */
 QTextEdit, QPlainTextEdit {
     border: 1px solid palette(mid);
     border-radius: 4px;
@@ -155,18 +200,18 @@ QTextEdit, QPlainTextEdit {
     color: palette(text);
 }
 
-/* Разделители */
+/*  Разделители  */
 QSplitter::handle          { background-color: palette(mid); }
 QSplitter::handle:horizontal { width: 6px; }
 QSplitter::handle:vertical   { height: 6px; }
 
-/* Диалоги */
+/*  Диалоги  */
 QMessageBox            { background-color: palette(window); }
 QMessageBox QLabel     { color: palette(windowText); }
 QCalendarWidget        { background-color: palette(base); color: palette(text); }
 QInputDialog, QFileDialog { background-color: palette(window); color: palette(windowText); }
 
-/* Карточки (именованные фреймы) */
+/*  Карточки (именованные фреймы)  */
 /* Используем background: palette(base) — правильно перекрашивается темой */
 QFrame {
     border: none;
@@ -183,9 +228,9 @@ QFrame#registerCard {
     padding: 4px;
 }
 
-/*
+/* 
    Окно входа (Login)
-   */
+*/
 QLabel#loginLogo     { font-size: 60px; background: transparent; }
 QLabel#loginTitle    { font-size: 28px; font-weight: bold; color: #4CAF50; background: transparent; }
 QLabel#loginSubtitle { font-size: 12px; color: #888; background: transparent; }
@@ -220,11 +265,72 @@ QPushButton#loginRegBtn {
     background: transparent;
     min-height: 32px;
 }
+
+QLabel[role="mutedText"], QLabel[role="smallText"] {
+    color: palette(mid);
+    font-size: 12px;
+}
+QLabel[role="mutedSmallText"] {
+    color: palette(mid);
+    font-size: 11px;
+}
+QLabel[role="hintText"] {
+    color: palette(mid);
+    font-size: 12px;
+}
+QLabel[role="focusTimerInfo"] {
+    font-size: 13px;
+    color: palette(mid);
+}
+QLabel[role="focusTimerInfo"][state="warning"] {
+    color: #FF5252;
+    font-weight: bold;
+}
+QLabel[role="focusTimerTime"] {
+    font-size: 72px;
+    font-weight: bold;
+    color: #4CAF50;
+    letter-spacing: 4px;
+}
+QLabel[role="focusTimerTime"][state="finished"] {
+    color: #FF5252;
+}
+QLabel[deadlineStatus="overdue"] {
+    color: #FF5252;
+    font-size: 11px;
+}
+QLabel[deadlineStatus="today"] {
+    color: #FF9800;
+    font-size: 11px;
+}
+QLabel[deadlineStatus="normal"] {
+    color: #4CAF50;
+    font-size: 11px;
+}
+QLabel#unlockErrorLabel {
+    color: #FF5252;
+}
+QProgressBar#pwdStrengthBar {
+    border: 1px solid palette(mid);
+    border-radius: 3px;
+    background-color: palette(alternateBase);
+    min-height: 6px;
+}
+QProgressBar#pwdStrengthBar::chunk {
+    border-radius: 3px;
+    background-color: #cccccc;
+}
+QProgressBar#pwdStrengthBar[strengthLevel="0"]::chunk { background-color: #cccccc; }
+QProgressBar#pwdStrengthBar[strengthLevel="1"]::chunk { background-color: #f44336; }
+QProgressBar#pwdStrengthBar[strengthLevel="2"]::chunk { background-color: #ffc107; }
+QProgressBar#pwdStrengthBar[strengthLevel="3"]::chunk { background-color: #4caf50; }
+QProgressBar#pwdStrengthBar[strengthLevel="4"]::chunk { background-color: #2e7d32; }
+
 QPushButton#loginRegBtn:hover { text-decoration: underline; }
 
-/*
+/* 
    Окно регистрации (Register)
-   */
+    */
 QLabel#registerLogo    { font-size: 48px; background: transparent; }
 QLabel#registerTitle   { font-size: 24px; font-weight: bold; color: #4CAF50; background: transparent; }
 QLabel#registerLabel   { font-size: 13px; font-weight: bold; background: transparent; }

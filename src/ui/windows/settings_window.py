@@ -27,12 +27,12 @@ class SettingsWindow(QWidget):
         layout.setContentsMargins(25, 25, 25, 25)
 
         title = QLabel("Настройки")
-        title.setStyleSheet("font-size: 22px; font-weight: bold;")
+        title.setProperty("role", "pageTitle")
         layout.addWidget(title)
 
         tabs = QTabWidget()
 
-        # Вкладка: Внешний вид
+        #  Вкладка: Внешний вид 
         appearance_tab = QWidget()
         al = QVBoxLayout(appearance_tab)
         al.setSpacing(15)
@@ -57,12 +57,13 @@ class SettingsWindow(QWidget):
 
         theme_apply_btn = QPushButton("Применить тему")
         theme_apply_btn.setMinimumHeight(42)
+        theme_apply_btn.setObjectName("primaryButton")
         theme_apply_btn.clicked.connect(self._apply_theme)
         al.addWidget(theme_apply_btn)
         al.addStretch()
         tabs.addTab(appearance_tab, "Внешний вид")
 
-        # Вкладка: Уведомления
+        #  Вкладка: Уведомления 
         notif_tab = QWidget()
         nl = QVBoxLayout(notif_tab)
         nl.setSpacing(12)
@@ -108,20 +109,22 @@ class SettingsWindow(QWidget):
             "будут приходить каждые 5 минут, даже если приложение закрыто."
         )
         sys_desc.setWordWrap(True)
-        sys_desc.setStyleSheet("font-size:11px; color:palette(mid);")
+        sys_desc.setProperty("role", "mutedSmallText")
         sys_l.addWidget(sys_desc)
         btn_row = QHBoxLayout()
-        self.sys_install_btn = QPushButton("⚙️ Установить таймер")
+        self.sys_install_btn = QPushButton("Установить таймер")
         self.sys_install_btn.setMinimumHeight(38)
+        self.sys_install_btn.setObjectName("secondaryButton")
         self.sys_install_btn.clicked.connect(self._install_sys_notif)
         btn_row.addWidget(self.sys_install_btn)
-        self.sys_uninstall_btn = QPushButton("🗑 Удалить таймер")
+        self.sys_uninstall_btn = QPushButton("Удалить таймер")
         self.sys_uninstall_btn.setMinimumHeight(38)
+        self.sys_uninstall_btn.setObjectName("dangerButton")
         self.sys_uninstall_btn.clicked.connect(self._uninstall_sys_notif)
         btn_row.addWidget(self.sys_uninstall_btn)
         sys_l.addLayout(btn_row)
         self.sys_status_lbl = QLabel("")
-        self.sys_status_lbl.setStyleSheet("font-size:11px;")
+        self.sys_status_lbl.setProperty("role", "mutedSmallText")
         sys_l.addWidget(self.sys_status_lbl)
         nl.addWidget(sys_g)
 
@@ -129,7 +132,7 @@ class SettingsWindow(QWidget):
         tabs.addTab(notif_tab, "Уведомления")
         self._refresh_sys_status()
 
-        # Вкладка: Безопасность
+        #  Вкладка: Безопасность 
         sec_tab = QWidget()
         sl = QVBoxLayout(sec_tab)
         sl.setSpacing(12)
@@ -151,7 +154,7 @@ class SettingsWindow(QWidget):
         pfl.addRow("Повторите пароль:", self.new_pwd2)
 
         self.pwd_match_label = QLabel("")
-        self.pwd_match_label.setStyleSheet("font-size:11px; color:#666;")
+        self.pwd_match_label.setProperty("role", "mutedSmallText")
         pfl.addRow("", self.pwd_match_label)
         self.new_pwd.textChanged.connect(self._check_pwd_match)
         self.new_pwd2.textChanged.connect(self._check_pwd_match)
@@ -159,6 +162,7 @@ class SettingsWindow(QWidget):
 
         change_pwd_btn = QPushButton("Изменить пароль")
         change_pwd_btn.setMinimumHeight(42)
+        change_pwd_btn.setObjectName("secondaryButton")
         change_pwd_btn.clicked.connect(self._change_password)
         sl.addWidget(change_pwd_btn)
 
@@ -169,7 +173,7 @@ class SettingsWindow(QWidget):
             "Вы можете запросить удаление всех ваших данных.\n"
             "Данные будут удалены в течение 24 часов."
         )
-        del_info.setStyleSheet("color: #666; font-size: 12px;")
+        del_info.setProperty("role", "smallText")
         del_info.setWordWrap(True)
         del_l.addWidget(del_info)
         del_btn = QPushButton("Запросить удаление данных")
@@ -181,45 +185,46 @@ class SettingsWindow(QWidget):
         sl.addStretch()
         tabs.addTab(sec_tab, "Безопасность")
 
-        # Вкладка: О приложении
+        #  Вкладка: О приложении 
         about_tab = QWidget()
         abl = QVBoxLayout(about_tab)
         abl.setAlignment(Qt.AlignTop)
         abl.setContentsMargins(15, 15, 15, 15)
 
         logo = QLabel("🎯")
-        logo.setStyleSheet("font-size: 64px;")
+        logo.setProperty("role", "logoIcon")
         logo.setAlignment(Qt.AlignCenter)
         abl.addWidget(logo)
 
         app_name = QLabel("FocusGoal")
-        app_name.setStyleSheet("font-size: 24px; font-weight: bold; color: #4CAF50;")
+        app_name.setProperty("role", "accentHeading")
         app_name.setAlignment(Qt.AlignCenter)
         abl.addWidget(app_name)
 
         version = QLabel("Версия 1.0.0")
-        version.setStyleSheet("color: #888; font-size: 13px;")
+        version.setProperty("role", "mutedText")
         version.setAlignment(Qt.AlignCenter)
         abl.addWidget(version)
 
         desc = QLabel(
             "Система управления личными целями, привычками\n"
             "и продуктивностью с функцией блокировки отвлекающих приложений.\n\n"
-            "© 2024 FocusGoal Team\n"
-            "Лицензия: MIT"
+            "© 2026 FocusGoal Team\n"
+            "Лицензия: отсутствует"
         )
-        desc.setStyleSheet("font-size: 12px; color: #666;")
+        desc.setProperty("role", "smallText")
         desc.setAlignment(Qt.AlignCenter)
         desc.setWordWrap(True)
         abl.addWidget(desc)
         abl.addStretch()
-        tabs.addTab(about_tab, "ℹ О приложении")
+        tabs.addTab(about_tab, "О приложении")
 
         layout.addWidget(tabs)
 
         # Кнопка сохранения
         save_btn = QPushButton("Сохранить настройки")
         save_btn.setMinimumHeight(46)
+        save_btn.setObjectName("primaryButton")
         save_btn.clicked.connect(self._save_settings)
         layout.addWidget(save_btn)
 
@@ -329,17 +334,17 @@ class SettingsWindow(QWidget):
                 f"Пароль должен быть не менее {Settings().PASSWORD_MIN_LENGTH} символов, "
                 "содержать буквы и цифры"
             )
-            self.pwd_match_label.setStyleSheet("font-size:11px; color:#FF5252;")
+            self.pwd_match_label.setProperty("role", "errorSmallText")
             return
         if not p2:
             self.pwd_match_label.setText("")
             return
         if p1 == p2:
             self.pwd_match_label.setText("✓ Пароли совпадают")
-            self.pwd_match_label.setStyleSheet("font-size:11px; color:#4CAF50;")
+            self.pwd_match_label.setProperty("role", "accentSmallText")
         else:
             self.pwd_match_label.setText("✗ Пароли не совпадают")
-            self.pwd_match_label.setStyleSheet("font-size:11px; color:#FF5252;")
+            self.pwd_match_label.setProperty("role", "errorSmallText")
 
     def _change_password(self):
         old = self.old_pwd.text()
@@ -405,10 +410,10 @@ class SettingsWindow(QWidget):
             from src.services.system_notifications import NotificationInstaller
             if NotificationInstaller.is_installed():
                 self.sys_status_lbl.setText("Таймер активен")
-                self.sys_status_lbl.setStyleSheet("font-size:11px; color:#4CAF50;")
+                self.sys_status_lbl.setProperty("role", "accentSmallText")
             else:
                 self.sys_status_lbl.setText("Таймер не установлен")
-                self.sys_status_lbl.setStyleSheet("font-size:11px; color:#888;")
+                self.sys_status_lbl.setProperty("role", "mutedSmallText")
         except Exception:
             pass
 

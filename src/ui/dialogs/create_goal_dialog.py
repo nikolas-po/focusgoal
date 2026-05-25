@@ -21,7 +21,6 @@ class CreateGoalDialog(QDialog):
         self.setMinimumWidth(580)
         self.setMinimumHeight(680)
         self._setup_ui()
-        self._apply_style()
         if goal_id:
             QTimer.singleShot(50, self._load_goal)
 
@@ -33,8 +32,8 @@ class CreateGoalDialog(QDialog):
         layout.setSpacing(14)
         layout.setContentsMargins(25, 25, 25, 25)
 
-        title_lbl = QLabel(("Редактировать цель" if self.goal_id else "Новая цель"))
-        title_lbl.setStyleSheet("font-size: 20px; font-weight: bold; color: #4CAF50;")
+        title_lbl = QLabel("🎯 " + ("Редактировать цель" if self.goal_id else "Новая цель"))
+        title_lbl.setProperty("role", "accentTitle")
         title_lbl.setAlignment(Qt.AlignCenter)
         layout.addWidget(title_lbl)
 
@@ -99,6 +98,7 @@ class CreateGoalDialog(QDialog):
         btn_row = QHBoxLayout()
         btn_row.setSpacing(10)
         save_btn = QPushButton("Сохранить")
+        save_btn.setObjectName("primaryButton")
         save_btn.setMinimumHeight(48)
         save_btn.clicked.connect(self._save)
         btn_row.addWidget(save_btn)
@@ -114,21 +114,7 @@ class CreateGoalDialog(QDialog):
         outer = QVBoxLayout(self)
         outer.addWidget(scroll)
 
-    def _apply_style(self):
-        self.setStyleSheet("""
-            QDialog { background: palette(window); }
-            QGroupBox { font-weight: bold; border: 1px solid palette(mid);
-                        border-radius: 8px; margin-top: 8px; padding-top: 12px; }
-            QGroupBox::title { subcontrol-origin: margin; left: 10px; padding: 0 5px; }
-            QLineEdit, QTextEdit, QDateEdit, QComboBox, QTimeEdit {
-                padding: 8px; border: 1px solid palette(mid); border-radius: 4px; background: palette(base); }
-            QLineEdit:focus, QTextEdit:focus { border: 2px solid #4CAF50; }
-            QPushButton { background: #4CAF50; color: white; border: none;
-                          border-radius: 4px; font-weight: bold; font-size: 14px; }
-            QPushButton:hover { background: #45a049; }
-            QPushButton#cancelButton { background: #9E9E9E; }
-            QPushButton#cancelButton:hover { background: #757575; }
-        """)
+
 
     def _load_goal(self):
         db = SessionLocal()
@@ -157,10 +143,10 @@ class CreateGoalDialog(QDialog):
         name = self.name_input.text().strip()
         if len(name) < 3:
             QMessageBox.warning(self, "Ошибка", "Название должно быть минимум 3 символа")
-            self.name_input.setStyleSheet("border: 2px solid #FF5252;")
+            self.name_input.setProperty("validationState", "error")
             self.name_input.setFocus()
             return
-        self.name_input.setStyleSheet("")
+        self.name_input.setProperty("validationState", "normal")
 
         desc = self.desc_input.toPlainText().strip()
         if desc and len(desc) < 4:
@@ -197,10 +183,10 @@ class CreateGoalDialog(QDialog):
                     # Объединить дату дедлайна и время напоминания
                     reminder_dt = dt(qd.year(), qd.month(), qd.day(), 
                                     remind_time.hour(), remind_time.minute(), 0, 
-                                    tzinfo=dt.now())
+                                    tzinfo=timezone.utc)
                     
                     # Если время уже прошло, перенести на завтра
-                    now = dt.now()
+                    now = dt.now(timezone.utc)
                     if reminder_dt <= now:
                         reminder_dt = now + timedelta(days=1)
                         reminder_dt = reminder_dt.replace(hour=remind_time.hour(), minute=remind_time.minute())

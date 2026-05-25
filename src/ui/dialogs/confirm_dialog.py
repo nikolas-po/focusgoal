@@ -18,24 +18,25 @@ class ConfirmDialog(QDialog):
         layout.setContentsMargins(25, 25, 25, 25)
 
         icon = QLabel("⚠️")
-        icon.setStyleSheet("font-size: 44px;")
+        icon.setProperty("role", "largeIcon")
         icon.setAlignment(Qt.AlignCenter)
         layout.addWidget(icon)
 
         msg = QLabel(message)
         msg.setWordWrap(True)
         msg.setAlignment(Qt.AlignCenter)
-        msg.setStyleSheet("font-size: 14px;")
+        msg.setProperty("role", "bodyText")
         layout.addWidget(msg)
 
         buttons = QDialogButtonBox(
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel
         )
-        buttons.button(QDialogButtonBox.Ok).setText(confirm_text)
-        buttons.button(QDialogButtonBox.Ok).setStyleSheet(
-            "background: #FF5252; color: white; min-height: 36px;"
-        )
-        buttons.button(QDialogButtonBox.Cancel).setText("Отмена")
+        ok_btn = buttons.button(QDialogButtonBox.Ok)
+        ok_btn.setText(confirm_text)
+        ok_btn.setObjectName("dangerButton")
+        cancel_btn = buttons.button(QDialogButtonBox.Cancel)
+        cancel_btn.setText("Отмена")
+        cancel_btn.setObjectName("cancelButton")
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)

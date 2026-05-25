@@ -24,12 +24,12 @@ class FocusWindow(QWidget):
         layout.setContentsMargins(30, 30, 30, 30)
 
         title = QLabel("Режим фокуса")
-        title.setStyleSheet("font-size: 26px; font-weight: bold;")
+        title.setProperty("role", "valueLabel")
         title.setAlignment(Qt.AlignCenter)
         layout.addWidget(title)
 
         desc = QLabel("Заблокируйте отвлекающие приложения и сосредоточьтесь на важном.")
-        desc.setStyleSheet("font-size: 12px; color: palette(mid);")
+        desc.setProperty("role", "smallText")
         desc.setAlignment(Qt.AlignCenter)
         layout.addWidget(desc)
 
@@ -96,18 +96,14 @@ class FocusWindow(QWidget):
             "💡 Ctrl+Shift+Esc — экстренное завершение сессии\n"
             "💡 Для строгой блокировки запустите приложение с правами администратора"
         )
-        tip.setStyleSheet("color: palette(mid); font-size: 12px; padding: 8px;")
+        tip.setProperty("role", "tipText")
         tip.setWordWrap(True)
         layout.addWidget(tip)
 
         layout.addSpacing(10)
         start_btn = QPushButton("Запустить фокус-сессию")
+        start_btn.setObjectName("focusStartBtn")
         start_btn.setMinimumHeight(58)
-        start_btn.setStyleSheet(
-            "QPushButton { font-size: 18px; font-weight: bold; "
-            "background: #4CAF50; color: white; border: none; border-radius: 8px; }"
-            "QPushButton:hover { background: #45a049; }"
-        )
         start_btn.clicked.connect(self._start)
         layout.addWidget(start_btn)
 

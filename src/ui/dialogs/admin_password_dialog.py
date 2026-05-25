@@ -42,7 +42,7 @@ class AdminPasswordDialog(QDialog):
             "Приложение требует административные права.\n"
             "Введите пароль администратора:"
         )
-        info.setStyleSheet("color: #666; font-size: 11px;")
+        info.setProperty("role", "mutedSmallText")
         info.setWordWrap(True)
         layout.addWidget(info)
 
@@ -59,7 +59,7 @@ class AdminPasswordDialog(QDialog):
 
         # Ошибка
         self.error_label = QLabel()
-        self.error_label.setStyleSheet("color: #d32f2f; font-size: 11px;")
+        self.error_label.setProperty("role", "errorTextSmall")
         self.error_label.setVisible(False)
         layout.addWidget(self.error_label)
 
@@ -70,13 +70,14 @@ class AdminPasswordDialog(QDialog):
         cancel_btn = QPushButton("Отмена")
         cancel_btn.setMinimumHeight(38)
         cancel_btn.setMinimumWidth(100)
+        cancel_btn.setObjectName("cancelButton")
         cancel_btn.clicked.connect(self.reject)
         btn_layout.addWidget(cancel_btn)
 
         ok_btn = QPushButton("Ввести")
         ok_btn.setMinimumHeight(38)
         ok_btn.setMinimumWidth(100)
-        ok_btn.setStyleSheet("QPushButton { background-color: #4CAF50; color: white; font-weight: bold; }")
+        ok_btn.setObjectName("primaryButton")
         ok_btn.clicked.connect(self._try_password)
         btn_layout.addWidget(ok_btn)
 

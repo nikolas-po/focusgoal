@@ -1,7 +1,7 @@
-/*
+/* 
    FocusGoal — Тёмная тема
    Подключается ПОСЛЕ common.qss, переопределяет цвета
-*/
+    */
 
 QWidget        { background-color: #2b2b2b; color: #e0e0e0; }
 QMainWindow    { background-color: #2b2b2b; }
@@ -28,15 +28,7 @@ QComboBox QAbstractItemView {
 }
 
 /* Кнопки */
-QPushButton {
-    background-color: #4CAF50;
-    color: #ffffff;
-    border: none;
-    border-radius: 6px;
-}
-QPushButton:hover   { background-color: #45a049; }
-QPushButton:pressed { background-color: #3d8b40; }
-QPushButton:disabled { background-color: #444444; color: #777777; }
+/* Общие правила кнопок определяются в common.qss */
 
 /* Группы */
 QGroupBox { color: #e0e0e0; border: 1px solid #555555; background: transparent; }
@@ -82,7 +74,9 @@ QMenuBar::item:selected { background-color: #4CAF50; color: #ffffff; }
 
 /* Toolbar */
 QToolBar   { background-color: #2b2b2b; border: 1px solid #555555; }
-QToolButton { color: #e0e0e0; }
+QToolButton {
+    color: #e0e0e0;
+}
 QToolButton:hover { background-color: #3c3c3c; border: 1px solid #555555; }
 
 /* Таблицы */

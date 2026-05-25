@@ -21,11 +21,11 @@ class HabitWindow(QWidget):
         layout.setContentsMargins(20, 20, 20, 20)
 
         title = QLabel("Привычки")
-        title.setStyleSheet("font-size: 22px; font-weight: bold;")
+        title.setProperty("role", "pageTitle")
         layout.addWidget(title)
 
         self.stats_lbl = QLabel("")
-        self.stats_lbl.setStyleSheet("font-size: 12px; color: #666;")
+        self.stats_lbl.setProperty("role", "smallText")
         layout.addWidget(self.stats_lbl)
 
         # Фильтры
@@ -44,17 +44,20 @@ class HabitWindow(QWidget):
         fl.addWidget(self.type_combo)
         ab = QPushButton("Применить")
         ab.setMinimumHeight(34)
+        ab.setObjectName("primaryButton")
         ab.clicked.connect(self._load_habits)
         fl.addWidget(ab)
         rb = QPushButton("Сбросить")
         rb.setMinimumHeight(34)
+        rb.setObjectName("primaryButton")
         rb.clicked.connect(self._reset_filters)
         fl.addWidget(rb)
         fl.addStretch()
         layout.addWidget(fg)
 
-        add_btn = QPushButton("+ Новая привычка")
+        add_btn = QPushButton("Новая привычка")
         add_btn.setMinimumHeight(40)
+        add_btn.setObjectName("primaryButton")
         add_btn.clicked.connect(self._create_habit)
         layout.addWidget(add_btn)
 
@@ -69,7 +72,7 @@ class HabitWindow(QWidget):
         layout.addWidget(self.scroll)
 
         self.status_lbl = QLabel("")
-        self.status_lbl.setStyleSheet("font-size: 11px; color: #888;")
+        self.status_lbl.setProperty("role", "mutedSmallText")
         layout.addWidget(self.status_lbl)
 
     def _load_habits(self):
@@ -100,7 +103,7 @@ class HabitWindow(QWidget):
             if not habits:
                 from PyQt5.QtWidgets import QLabel as QL
                 empty = QL("У вас пока нет привычек.\nНажмите «+ Новая привычка».")
-                empty.setStyleSheet("font-size: 14px; color: #888;")
+                empty.setProperty("role", "mutedText")
                 empty.setAlignment(Qt.AlignCenter)
                 self.cards_layout.addWidget(empty, 0, 0, 1, 3)
                 self.status_lbl.setText("Нет данных")

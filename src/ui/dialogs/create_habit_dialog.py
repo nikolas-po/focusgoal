@@ -21,7 +21,6 @@ class CreateHabitDialog(QDialog):
         self.setMinimumWidth(560)
         self.setMinimumHeight(640)
         self._setup_ui()
-        self._apply_style()
         if habit_id:
             QTimer.singleShot(50, self._load_habit)
 
@@ -34,7 +33,7 @@ class CreateHabitDialog(QDialog):
         layout.setContentsMargins(25, 25, 25, 25)
 
         title_lbl = QLabel(("Редактировать" if self.habit_id else "Новая привычка"))
-        title_lbl.setStyleSheet("font-size: 20px; font-weight: bold; color: #4CAF50;")
+        title_lbl.setProperty("role", "accentTitle")
         title_lbl.setAlignment(Qt.AlignCenter)
         layout.addWidget(title_lbl)
 
@@ -93,6 +92,7 @@ class CreateHabitDialog(QDialog):
         btn_row = QHBoxLayout()
         btn_row.setSpacing(10)
         save_btn = QPushButton("Сохранить")
+        save_btn.setObjectName("primaryButton")
         save_btn.setMinimumHeight(48)
         save_btn.clicked.connect(self._save)
         btn_row.addWidget(save_btn)
@@ -111,21 +111,6 @@ class CreateHabitDialog(QDialog):
     def _on_mode_changed(self, idx: int):
         self.target_spin.setEnabled(idx == 1)
 
-    def _apply_style(self):
-        self.setStyleSheet("""
-            QDialog { background: palette(window); }
-            QGroupBox { font-weight: bold; border: 1px solid palette(mid);
-                        border-radius: 8px; margin-top: 8px; padding-top: 12px; }
-            QGroupBox::title { subcontrol-origin: margin; left: 10px; padding: 0 5px; }
-            QLineEdit, QTextEdit, QComboBox, QTimeEdit, QSpinBox {
-                padding: 8px; border: 1px solid palette(mid); border-radius: 4px; background: palette(base); }
-            QLineEdit:focus, QTextEdit:focus { border: 2px solid #4CAF50; }
-            QPushButton { background: #4CAF50; color: white; border: none;
-                          border-radius: 4px; font-weight: bold; font-size: 14px; }
-            QPushButton:hover { background: #45a049; }
-            QPushButton#cancelButton { background: #9E9E9E; }
-            QPushButton#cancelButton:hover { background: #757575; }
-        """)
 
     def _load_habit(self):
         db = SessionLocal()
@@ -151,10 +136,10 @@ class CreateHabitDialog(QDialog):
         name = self.name_input.text().strip()
         if len(name) < 3:
             QMessageBox.warning(self, "Ошибка", "Название должно быть минимум 3 символа")
-            self.name_input.setStyleSheet("border: 2px solid #FF5252;")
+            self.name_input.setProperty("validationState", "error")
             self.name_input.setFocus()
             return
-        self.name_input.setStyleSheet("")
+        self.name_input.setProperty("validationState", "normal")
 
         desc = self.desc_input.toPlainText().strip() or None
         type_id = {0: 1, 1: 2, 2: 3}.get(self.type_combo.currentIndex(), 1)

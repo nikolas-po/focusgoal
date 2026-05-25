@@ -74,10 +74,7 @@ class GoalWindow(QWidget):
         self.delete_btn = QPushButton("Удалить")
         self.delete_btn.setMinimumHeight(40)
         self.delete_btn.setMinimumWidth(140)
-        self.delete_btn.setStyleSheet(
-            "QPushButton { background: #FF5252; color: white; border: none; border-radius: 4px; }"
-            "QPushButton:hover { background: #E53935; }"
-        )
+        self.delete_btn.setObjectName("dangerButton")
         self.delete_btn.clicked.connect(self._delete)
         actions_l.addWidget(self.delete_btn)
 

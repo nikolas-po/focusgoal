@@ -27,7 +27,7 @@ class ExportDialog(QDialog):
         layout.setSpacing(14); layout.setContentsMargins(25,25,25,25)
 
         title = QLabel("Экспорт данных")
-        title.setStyleSheet("font-size: 20px; font-weight: bold;")
+        title.setProperty("role", "dialogTitle")
         layout.addWidget(title)
 
         fmt_g = QGroupBox("Формат экспорта")
@@ -56,23 +56,19 @@ class ExportDialog(QDialog):
         layout.addStretch()
 
         btn_row = QHBoxLayout()
-        exp_btn = QPushButton("Экспортировать"); exp_btn.setMinimumHeight(48)
+        exp_btn = QPushButton("Экспортировать")
+        exp_btn.setObjectName("primaryButton")
+        exp_btn.setMinimumHeight(48)
         exp_btn.clicked.connect(self._export); btn_row.addWidget(exp_btn)
-        cancel_btn = QPushButton("Отмена"); cancel_btn.setMinimumHeight(48)
-        cancel_btn.setObjectName("cancelButton"); cancel_btn.clicked.connect(self.reject)
+        cancel_btn = QPushButton("Отмена")
+        cancel_btn.setMinimumHeight(48)
+        cancel_btn.setObjectName("cancelButton")
+        cancel_btn.clicked.connect(self.reject)
         btn_row.addWidget(cancel_btn)
         layout.addLayout(btn_row)
 
         container.setLayout(layout); scroll.setWidget(container)
         outer = QVBoxLayout(self); outer.addWidget(scroll)
-        self.setStyleSheet("""
-            QDialog { background: palette(window); color: palette(windowText); }
-            QGroupBox { font-weight:bold; border:1px solid palette(mid); border-radius:8px; margin-top:8px; padding-top:12px; }
-            QGroupBox::title { subcontrol-origin:margin; left:10px; padding:0 4px; }
-            QPushButton { background: palette(button); color: palette(buttonText); border:none; border-radius:4px; font-weight:bold; font-size:14px; }
-            QPushButton:hover { background: palette(highlight); }
-            QPushButton#cancelButton { background: palette(mid); color: palette(windowText); }
-        """)
 
     def _export(self):
         fmt = self.fmt_group.checkedId()

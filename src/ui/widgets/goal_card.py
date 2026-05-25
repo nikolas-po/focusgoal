@@ -36,7 +36,7 @@ class GoalCard(QFrame):
         prio = QLabel(prio_icons.get(self.priority, "🟡"))
         header.addWidget(prio)
         name_lbl = QLabel(self.name[:35])
-        name_lbl.setStyleSheet("font-weight: bold; font-size: 13px;")
+        name_lbl.setProperty("role", "boldSmallText")
         name_lbl.setWordWrap(True)
         header.addWidget(name_lbl, 1)
         layout.addLayout(header)
@@ -55,7 +55,7 @@ class GoalCard(QFrame):
             else:
                 color, text = "#4CAF50", f"Осталось {days} дн."
             deadline_lbl = QLabel(text)
-            deadline_lbl.setStyleSheet(f"font-size: 11px; color: {color};")
+            deadline_lbl.setProperty("deadlineStatus", "overdue" if overdue else "today" if days == 0 else "normal")
             layout.addWidget(deadline_lbl)
 
         layout.addStretch()
@@ -63,28 +63,18 @@ class GoalCard(QFrame):
         # Кнопки
         btn_row = QHBoxLayout()
         btn_row.setSpacing(6)
-        for icon, tip, signal, color in [
-            ("✓", "Выполнена", self.goal_completed, "#4CAF50"),
-            ("✎", "Редактировать", self.goal_edited, "#2196F3"),
-            ("🗑", "Удалить", self.goal_deleted, "#FF5252"),
+        for icon, tip, signal, name in [
+            ("✓", "Выполнена", self.goal_completed, "circlePrimaryButton"),
+            ("✎", "Редактировать", self.goal_edited, "circleSecondaryButton"),
+            ("🗑", "Удалить", self.goal_deleted, "dangerCircleButton"),
         ]:
             btn = QPushButton(icon)
+            btn.setObjectName(name)
             btn.setFixedSize(32, 32)
             btn.setToolTip(tip)
-            btn.setStyleSheet(
-                f"QPushButton {{ background: {color}; color: white; border: none; "
-                f"border-radius: 16px; }}"
-                f"QPushButton:hover {{ opacity: 0.85; }}"
-            )
             btn.clicked.connect(lambda _, gid=self.goal_id, s=signal: s.emit(gid))
             btn_row.addWidget(btn)
         btn_row.addStretch()
         layout.addLayout(btn_row)
 
-        border = "#FF5252" if self.status == 3 else (
-            "#4CAF50" if self.status == 2 else "#e0e0e0"
-        )
-        self.setStyleSheet(
-            f"QFrame#goalCard {{ background: palette(base); border: 2px solid {border}; "
-            f"border-radius: 10px; }}"
-        )
+        self.setProperty("statusBorder", self.status)

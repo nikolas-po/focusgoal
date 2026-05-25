@@ -29,14 +29,14 @@ class BackupWindow(QWidget):
         layout.setContentsMargins(25, 25, 25, 25)
 
         title = QLabel("Резервные копии")
-        title.setStyleSheet("font-size: 22px; font-weight: bold;")
+        title.setProperty("role", "pageTitle")
         layout.addWidget(title)
 
         desc = QLabel(
             "Регулярно создавайте резервные копии для защиты данных. "
             "Хранятся последние 7 копий по умолчанию."
         )
-        desc.setStyleSheet("font-size: 12px; color: #666;")
+        desc.setProperty("role", "smallText")
         desc.setWordWrap(True)
         layout.addWidget(desc)
 
@@ -77,7 +77,7 @@ class BackupWindow(QWidget):
         info_l = QVBoxLayout(self.info_g)
         self.info_label = QLabel("Выберите копию из списка")
         self.info_label.setWordWrap(True)
-        self.info_label.setStyleSheet("font-size: 12px; color: #666;")
+        self.info_label.setProperty("role", "smallText")
         info_l.addWidget(self.info_label)
         layout.addWidget(self.info_g)
 
@@ -115,12 +115,8 @@ class BackupWindow(QWidget):
 
         # Кнопка создания
         create_btn = QPushButton("Создать резервную копию сейчас")
+        create_btn.setObjectName("backupCreateBtn")
         create_btn.setMinimumHeight(54)
-        create_btn.setStyleSheet(
-            "QPushButton { font-size: 16px; font-weight: bold; "
-            "background: #4CAF50; color: white; border: none; border-radius: 8px; }"
-            "QPushButton:hover { background: #45a049; }"
-        )
         create_btn.clicked.connect(self._create_now)
         layout.addWidget(create_btn)
 
