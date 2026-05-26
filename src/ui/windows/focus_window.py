@@ -80,21 +80,9 @@ class FocusWindow(QWidget):
                 rb.setChecked(True)
         layout.addWidget(block_group)
 
-        # Категории блокировок
-        bl_group = QGroupBox("Блокировать (выберите категории)")
-        bl_layout = QVBoxLayout(bl_group)
-        self.chk_browsers = QCheckBox("Браузеры (Chrome, Firefox, Edge)")
-        self.chk_social   = QCheckBox("Соцсети и мессенджеры (Telegram, VK, Discord)")
-        self.chk_games    = QCheckBox("Игры")
-        self.chk_browsers.setChecked(True)
-        self.chk_social.setChecked(True)
-        for chk in [self.chk_browsers, self.chk_social, self.chk_games]:
-            bl_layout.addWidget(chk)
-        layout.addWidget(bl_group)
-
         tip = QLabel(
-            "💡 Ctrl+Shift+Esc — экстренное завершение сессии\n"
-            "💡 Для строгой блокировки запустите приложение с правами администратора"
+            "Ctrl+Shift+Esc — экстренное завершение сессии\n"
+            "Для строгой блокировки  приложение потребует права администратора и будет перезапущено с этими правами. Если вы не предоставите права, сессия не запустится."
         )
         tip.setProperty("role", "tipText")
         tip.setWordWrap(True)

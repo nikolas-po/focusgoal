@@ -71,6 +71,12 @@ class GoalWindow(QWidget):
         self.mark_btn.clicked.connect(self._mark_done)
         actions_l.addWidget(self.mark_btn)
 
+        self.view_btn = QPushButton("Просмотр")
+        self.view_btn.setMinimumHeight(40)
+        self.view_btn.setMinimumWidth(140)
+        self.view_btn.clicked.connect(self._view)
+        actions_l.addWidget(self.view_btn)
+
         self.delete_btn = QPushButton("Удалить")
         self.delete_btn.setMinimumHeight(40)
         self.delete_btn.setMinimumWidth(140)
@@ -84,7 +90,7 @@ class GoalWindow(QWidget):
         # Таблица
         self.table = QTableWidget()
         self.table.setColumnCount(6)
-        self.table.setHorizontalHeaderLabels(["ID", "Название", "Дедлайн", "Приоритет", "Статус", "Описание"])
+        self.table.setHorizontalHeaderLabels(["№", "Название", "Дедлайн", "Приоритет", "Статус", "Описание"])
         
         hdr = self.table.horizontalHeader()
         hdr.setSectionResizeMode(0, QHeaderView.ResizeToContents)
@@ -100,6 +106,7 @@ class GoalWindow(QWidget):
         self.table.setMinimumHeight(300)
         self.table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.table.verticalHeader().setVisible(False)
+        self.table.setWordWrap(True)
         layout.addWidget(self.table, stretch=1)
 
     def load_goals(self):
@@ -131,8 +138,8 @@ class GoalWindow(QWidget):
                 
                 self.table.insertRow(row)
                 
-                # ID (не редактируемый)
-                id_item = QTableWidgetItem(str(goal.id))
+                # Порядковый номер (не редактируемый), реальный id хранится в UserRole
+                id_item = QTableWidgetItem(str(row + 1))
                 id_item.setFlags(id_item.flags() & ~Qt.ItemIsEditable)
                 id_item.setData(Qt.UserRole, goal.id)
                 self.table.setItem(row, 0, id_item)
@@ -161,6 +168,11 @@ class GoalWindow(QWidget):
                 self.table.setItem(row, 5, QTableWidgetItem(goal.description or ""))
                 
                 row += 1
+                # Подогнать высоту строк под содержимое (перенос строк включён)
+                try:
+                    self.table.resizeRowsToContents()
+                except Exception:
+                    pass
         except Exception as e:
             QMessageBox.warning(self, "Ошибка загрузки", f"Не удалось загрузить цели:\n{e}")
         finally:
@@ -175,11 +187,45 @@ class GoalWindow(QWidget):
         try:
             item = self.table.item(row, 0)
             if item:
-                goal_id = int(item.text())
-                return goal_id
+                goal_id = item.data(Qt.UserRole)
+                return int(goal_id)
         except (ValueError, AttributeError):
             pass
         return None
+
+    def _view(self):
+        """Показать детали выбранной цели"""
+        goal_id = self._get_selected_id()
+        if not goal_id:
+            return
+        try:
+            from src.ui.dialogs.goal_detail_dialog import GoalDetailDialog
+            db = SessionLocal()
+            try:
+                repo = GoalRepository(db)
+                goal = repo.get_by_id(goal_id)
+                if not goal:
+                    QMessageBox.warning(self, "Ошибка", "Цель не найдена")
+                    return
+                goal_data = {
+                    "id": goal.id,
+                    "name": goal.name,
+                    "description": goal.description,
+                    "deadline": goal.deadline,
+                    "priority_id": goal.priority_id,
+                    "status_id": goal.status_id,
+                    "repeat_type_id": getattr(goal, 'repeat_type_id', None),
+                    "fail_behavior_id": getattr(goal, 'fail_behavior_id', None),
+                    "created_at": getattr(goal, 'created_at', None),
+                }
+            finally:
+                db.close()
+
+            dlg = GoalDetailDialog(goal_data, user_id=self.user_id, parent=self)
+            if dlg.exec_():
+                self.load_goals()
+        except Exception as e:
+            QMessageBox.warning(self, "Ошибка", f"Не удалось открыть просмотр цели:\n{e}")
 
     def _create(self):
         """Создать новую цель"""

@@ -17,7 +17,6 @@ class User(BaseModel):
     timezone        = Column(String(50), default="Europe/Moscow", nullable=False)
     settings        = Column(JSONB, default=dict)
     local_data_path = Column(String(255), nullable=True)
-    gdpr_consent    = Column(DateTime, nullable=True)  # дата согласия 152-ФЗ
 
     goals           = relationship("Goal",                 back_populates="user", cascade="all, delete-orphan")
     habits          = relationship("Habit",                back_populates="user", cascade="all, delete-orphan")

@@ -25,6 +25,7 @@ from PyQt5.QtGui import QPalette, QColor, QFont, QGuiApplication
 from PyQt5.QtCore import Qt
 from PyQt5.QtCore import QObject, QEvent
 from src.config.settings import Settings
+from apscheduler.triggers.cron import CronTrigger
 from src.config import theme_state
 
 STYLES_DIR = Path(__file__).resolve().parent / "ui" / "styles"
@@ -307,11 +308,9 @@ def _start_scheduler(settings: Settings, logger):
         from src.services.notification_service import NotificationService
         from src.config.database import SessionLocal
         NotificationService.start_scheduler()
-        parts = settings.AUTO_BACKUP_TIME.split(":")
         db = SessionLocal()
-        notif_service = NotificationService(db)
-        notif_service.schedule_daily_backup(int(parts[0]), int(parts[1]))
-        notif_service.schedule_notifications(interval_minutes=1)  # Проверять каждую минуту для напоминаний
+        # Планировщик запускаем на старте, проверки уведомлений запланируем
+        # только после входа пользователя.
         db.close()
         logger.info("Планировщик запущен")
     except Exception as e:
@@ -410,7 +409,7 @@ def main():
 
     from PyQt5.QtWidgets import QStyleFactory
     available_styles = QStyleFactory.keys()
-    style_to_use = "Fusion"  # Default to Fusion
+    style_to_use = "Fusion"  # По умолчанию используем Fusion
     for preferred in ["Plastique", "Cleanlooks", "GTK+", "Oxygen"]:
         if preferred in available_styles:
             style_to_use = preferred
@@ -453,6 +452,45 @@ def main():
 
     win = _show_window(app, user_data, settings, logger)
 
+    # Если пользователь вошёл — запланировать пользовательский авто‑бэкап
+    if user_data:
+        try:
+            from src.services.notification_service import NotificationService
+            from src.config.database import SessionLocal
+            NotificationService.start_scheduler()
+            db2 = SessionLocal()
+            notif_for_user = NotificationService(db2, user_data['id'])
+            notif_for_user.schedule_notifications(interval_minutes=1)
+            # Попробуем прочитать пользовательские настройки авто‑бэкапа из БД
+            try:
+                from src.models.user import User
+                u = db2.query(User).filter(User.id == user_data['id']).first()
+                user_settings = dict(u.settings or {}) if u else {}
+            except Exception:
+                user_settings = {}
+
+            if user_settings.get("auto_backup_enabled") is False:
+                db2.close()
+            else:
+                t = user_settings.get("auto_backup_time") or settings.AUTO_BACKUP_TIME
+                parts = str(t).split(":")
+                notif_for_user = NotificationService(db2)
+                job_id = f"daily_backup_user_{user_data['id']}"
+                # удалить старую задачу если была
+                if job_id in NotificationService._jobs:
+                    try: NotificationService._scheduler.remove_job(job_id)
+                    except: pass
+                trigger = CronTrigger(hour=int(parts[0]), minute=int(parts[1]))
+                job = NotificationService._scheduler.add_job(
+                    notif_for_user._do_backup_user,
+                    trigger=trigger,
+                    id=job_id,
+                    args=[user_data['id']],
+                    replace_existing=True
+                )
+                NotificationService._jobs[job_id] = job
+        except Exception:
+            pass
     if user_data and args.resume_focus and hasattr(win, "start_focus_session"):
         win.start_focus_session(args.resume_duration, args.resume_block_level)
 

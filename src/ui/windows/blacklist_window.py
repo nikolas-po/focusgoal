@@ -5,7 +5,6 @@ from PyQt5.QtWidgets import (
     QGroupBox, QMessageBox, QHeaderView, QFormLayout, QSizePolicy, QScrollArea
 )
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont
 from src.config.database import SessionLocal
 from src.repositories.blocked_app_repository import BlockedAppRepository
 from src.utils.process_monitor import ProcessMonitor
@@ -92,7 +91,7 @@ class BlacklistWindow(QWidget):
         # ── Таблица ─────────────────────────────────────────────────────────
         self.table = QTableWidget()
         self.table.setColumnCount(5)
-        self.table.setHorizontalHeaderLabels(["ID","Приложение","Процесс","Уровень",""])
+        self.table.setHorizontalHeaderLabels(["№","Приложение","Процесс","Уровень",""])
         hdr = self.table.horizontalHeader()
         hdr.setSectionResizeMode(0, QHeaderView.ResizeToContents)
         hdr.setSectionResizeMode(1, QHeaderView.Stretch)
@@ -105,6 +104,7 @@ class BlacklistWindow(QWidget):
         self.table.verticalHeader().setVisible(False)
         self.table.setMinimumHeight(220)
         self.table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.table.setWordWrap(True)
         layout.addWidget(self.table, stretch=1)
 
         scroll.setWidget(container)
@@ -152,7 +152,7 @@ class BlacklistWindow(QWidget):
             level_names = {1: "Полная", 2: "Уведомление", 3: "Лимит"}
             for i, app in enumerate(BlockedAppRepository(db).get_by_user(self.user_id)):
                 self.table.insertRow(i)
-                for col, val in enumerate([str(app.id), app.app_name, app.process_name,
+                for col, val in enumerate([str(i+1), app.app_name, app.process_name,
                                            level_names.get(app.block_level_id,"?")]):
                     item = QTableWidgetItem(val)
                     item.setTextAlignment(Qt.AlignVCenter | Qt.AlignLeft)
@@ -167,12 +167,16 @@ class BlacklistWindow(QWidget):
                 cell_w = QWidget()
                 cell_l = QHBoxLayout(cell_w)
                 cell_l.setContentsMargins(4, 2, 4, 2)
+                cell_l.setAlignment(Qt.AlignCenter)
                 cell_l.addWidget(del_btn)
                 self.table.setCellWidget(i, 4, cell_w)
                 self.table.setRowHeight(i, 36)
+
+            self.table.resizeRowsToContents()
         except Exception as e:
             QMessageBox.warning(self, "Ошибка", str(e))
-        finally: db.close()
+        finally:
+            db.close()
 
     def _delete_app(self, app_id: int):
         if QMessageBox.question(self,"Удалить?","Убрать из чёрного списка?",

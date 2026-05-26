@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt, QTime
 from src.config.database import SessionLocal
 from src.config.settings import Settings
+from datetime import time
 
 
 class SettingsWindow(QWidget):
@@ -166,17 +167,16 @@ class SettingsWindow(QWidget):
         change_pwd_btn.clicked.connect(self._change_password)
         sl.addWidget(change_pwd_btn)
 
-        # Удаление данных
-        del_g = QGroupBox("Удаление данных (152-ФЗ)")
+        # Удаление аккаунта
+        del_g = QGroupBox("Удаление аккаунта")
         del_l = QVBoxLayout(del_g)
         del_info = QLabel(
-            "Вы можете запросить удаление всех ваших данных.\n"
-            "Данные будут удалены в течение 24 часов."
+            "Удалить аккаунт и все связанные данные немедленно."
         )
         del_info.setProperty("role", "smallText")
         del_info.setWordWrap(True)
         del_l.addWidget(del_info)
-        del_btn = QPushButton("Запросить удаление данных")
+        del_btn = QPushButton("Удалить аккаунт сейчас")
         del_btn.setObjectName("dangerButton")
         del_btn.setMinimumHeight(42)
         del_btn.clicked.connect(self._request_deletion)
@@ -302,6 +302,18 @@ class SettingsWindow(QWidget):
                 user.settings = s
                 db.commit()
             QMessageBox.information(self, "Успех", "Настройки сохранены!")
+            try:
+                # Применить тихий режим сразу в NotificationService
+                from src.services.notification_service import NotificationService
+                NotificationService.start_scheduler()
+                notif = NotificationService(db)
+                qs = s.get("quiet_start", "22:00").split(":")
+                qe = s.get("quiet_end", "08:00").split(":")
+                notif.set_quiet(s.get("quiet_mode", False),
+                                time(int(qs[0]), int(qs[1])),
+                                time(int(qe[0]), int(qe[1])))
+            except Exception:
+                pass
         except Exception as e:
             QMessageBox.warning(self, "Ошибка", str(e))
         finally:
@@ -419,8 +431,8 @@ class SettingsWindow(QWidget):
 
     def _request_deletion(self):
         reply = QMessageBox.question(
-            self, "Удаление данных",
-            "Все ваши данные будут удалены в течение 24 часов.\n"
+            self, "Удаление аккаунта",
+            "Удалить аккаунт и все связанные данные немедленно?\n"
             "Это действие необратимо.\n\nПродолжить?",
             QMessageBox.Yes | QMessageBox.No
         )
@@ -429,15 +441,16 @@ class SettingsWindow(QWidget):
         db = SessionLocal()
         try:
             from src.services.auth_service import AuthService
-            AuthService(db).delete_user_data(self.user_id)
-            QMessageBox.information(
-                self, "Запрос принят",
-                "Ваши данные будут удалены в течение 24 часов.\n"
-                "Приложение будет закрыто."
-            )
-            import sys
-            from PyQt5.QtWidgets import QApplication
-            QApplication.instance().quit()
+            ok = AuthService(db).delete_user_data(self.user_id)
+            if ok:
+                QMessageBox.information(
+                    self, "Готово",
+                    "Аккаунт удалён. Приложение будет закрыто."
+                )
+                from PyQt5.QtWidgets import QApplication
+                QApplication.instance().quit()
+            else:
+                QMessageBox.warning(self, "Ошибка", "Не удалось удалить аккаунт")
         except Exception as e:
             QMessageBox.warning(self, "Ошибка", str(e))
         finally:

@@ -95,6 +95,7 @@ class ProfileWindow(QWidget):
         self.log_table.setColumnWidth(0, 140)
         self.log_table.setColumnWidth(1, 100)
         self.log_table.setColumnWidth(2, 130)
+        self.log_table.setWordWrap(True)
         ll.addWidget(self.log_table)
         tabs.addTab(log_tab, "Журнал событий")
 
@@ -168,8 +169,16 @@ class ProfileWindow(QWidget):
                     log.event_at.strftime("%d.%m.%Y %H:%M:%S") if log.event_at else ""))
                 self.log_table.setItem(i, 1, QTableWidgetItem(
                     type_labels.get(log.event_type_id, "Инфо")))
-                self.log_table.setItem(i, 2, QTableWidgetItem(log.context or ""))
-                self.log_table.setItem(i, 3, QTableWidgetItem(log.message or ""))
+                item_ctx = QTableWidgetItem(log.context or "")
+                item_msg = QTableWidgetItem(log.message or "")
+                item_ctx.setFlags(item_ctx.flags() & ~Qt.ItemIsEditable)
+                item_msg.setFlags(item_msg.flags() & ~Qt.ItemIsEditable)
+                self.log_table.setItem(i, 2, item_ctx)
+                self.log_table.setItem(i, 3, item_msg)
+            try:
+                self.log_table.resizeRowsToContents()
+            except Exception:
+                pass
         except Exception as e:
             pass
         finally:

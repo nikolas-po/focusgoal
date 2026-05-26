@@ -6,6 +6,7 @@ from datetime import datetime, timezone, time
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from apscheduler.triggers.cron import CronTrigger
+from sqlalchemy import func
 
 try:
     from plyer import notification as plyer_notify
@@ -40,8 +41,9 @@ class NotificationService:
                 print(f"[NotificationService] Ошибка при остановке: {e}")
             cls._scheduler = None
 
-    def __init__(self, db):
+    def __init__(self, db, user_id: int = None):
         self.db = db
+        self.user_id = user_id
         self._quiet_mode = False
         self._quiet_start = None
         self._quiet_end = None
@@ -79,6 +81,20 @@ class NotificationService:
 
         return self.send_notification(title, message, urgency)
 
+    def remove_reminder(self, job_id: str) -> bool:
+        """Удалить задачу напоминания из планировщика (если есть)"""
+        try:
+            if self._scheduler and job_id in self._jobs:
+                try:
+                    self._scheduler.remove_job(job_id)
+                except Exception:
+                    pass
+                self._jobs.pop(job_id, None)
+                return True
+        except Exception:
+            pass
+        return False
+
     def send_focus_complete(self, minutes: int):
         return self.send(
             "Фокус завершен",
@@ -110,12 +126,16 @@ class NotificationService:
             from src.models.goal import Goal
             from datetime import datetime, timedelta, timezone
             
+            if self.user_id is None:
+                print("[NotificationService] Пользователь не задан, цели не проверяются")
+                return
             now = datetime.now()
             today = now.date()
-            
-            # Цели с дедлайном сегодня
+
+            # Цели с дедлайном сегодня — сравниваем по дате
             goals_today = self.db.query(Goal).filter(
-                Goal.deadline == today,
+                Goal.user_id == self.user_id,
+                func.date(Goal.deadline) == today,
                 Goal.status_id == 1  # только активные
             ).all()
             
@@ -126,7 +146,8 @@ class NotificationService:
             # Цели с дедлайном завтра
             tomorrow = today + timedelta(days=1)
             goals_tomorrow = self.db.query(Goal).filter(
-                Goal.deadline == tomorrow,
+                Goal.user_id == self.user_id,
+                func.date(Goal.deadline) == tomorrow,
                 Goal.status_id == 1
             ).all()
             
@@ -136,7 +157,8 @@ class NotificationService:
             
             # Просроченные цели
             goals_overdue = self.db.query(Goal).filter(
-                Goal.deadline < today,
+                Goal.user_id == self.user_id,
+                func.date(Goal.deadline) < today,
                 Goal.status_id.in_([1, 3])  # активные и просроченные
             ).all()
             
@@ -154,7 +176,13 @@ class NotificationService:
             from src.models.habit import Habit
             from datetime import datetime, timezone
             
-            habits = self.db.query(Habit).filter(Habit.status_id == 1).all()
+            if self.user_id is None:
+                print("[NotificationService] Пользователь не задан, привычки не проверяются")
+                return
+            habits = self.db.query(Habit).filter(
+                Habit.user_id == self.user_id,
+                Habit.status_id == 1
+            ).all()
             
             for habit in habits:
                 if habit.type_id == 1:  # ежедневная (DAILY)
@@ -175,23 +203,36 @@ class NotificationService:
             time_window_start = now - timedelta(minutes=5)
             time_window_end = now + timedelta(minutes=1)
 
+            if self.user_id is None:
+                print("[NotificationService] Пользователь не задан, плановые напоминания не проверяются")
+                return
             pending = self.db.query(NotificationSchedule).filter(
+                NotificationSchedule.user_id == self.user_id,
                 NotificationSchedule.delivery_status_id == 2,
                 NotificationSchedule.send_at.between(time_window_start, time_window_end)
             ).all()
 
             for n in pending:
-                self.send_notification("Напоминание", n.content)
-                # Запись остаётся в БД, но при следующем запуске она уже не попадёт в окно
-
+                sent = self.send_notification("Напоминание", n.content)
+                if sent:
+                    n.delivery_status_id = 3  # пометить как отправленное
+                    self.db.add(n)
             if pending:
+                try:
+                    self.db.commit()
+                except Exception:
+                    self.db.rollback()
                 print(f"[NotificationService] Отправлено {len(pending)} уведомлений")
 
         except Exception as e:
             print(f"[NotificationService] Ошибка при проверке уведомлений: {e}")
 
     def schedule_daily_backup(self, hour: int = 2, minute: int = 0):
-        """Расписание для ежедневного бэкапа в 2:00 ночи"""
+        """Расписание для ежедневного бэкапа в 2:00 ночи.
+
+        Параметр `user_id` может быть передан через аргументы при добавлении задачи
+        (см. вызов add_job с args).
+        """
         try:
             if self._scheduler is None:
                 return
@@ -203,6 +244,7 @@ class NotificationService:
             
             # Добавить новую работу
             trigger = CronTrigger(hour=hour, minute=minute)
+            # По умолчанию задача запускает общий бэкап (без аргументов).
             job = self._scheduler.add_job(
                 self._do_backup,
                 trigger=trigger,
@@ -214,6 +256,22 @@ class NotificationService:
             print(f"[NotificationService] Бэкап запланирован на {hour:02d}:{minute:02d}")
         except Exception as e:
             print(f"[NotificationService] Ошибка при планировании бэкапа: {e}")
+
+    def _do_backup_user(self, user_id: int = None):
+        """Выполнить бэкап для конкретного пользователя (если user_id)."""
+        try:
+            from src.services.backup_service import BackupService
+            from src.config.database import SessionLocal
+            db = SessionLocal()
+            service = BackupService(db)
+            if user_id is not None:
+                backup_file = service.create_backup(user_id=user_id)
+            else:
+                backup_file = service.create_backup()
+            db.close()
+            print(f"[BackupService] Бэкап выполнен: {backup_file}")
+        except Exception as e:
+            print(f"[BackupService] Ошибка при бэкапе (user): {e}")
 
     def schedule_notifications(self, interval_minutes: int = 30):
         """Расписание для проверки уведомлений каждые N минут"""
@@ -245,8 +303,8 @@ class NotificationService:
             from src.services.backup_service import BackupService
             from src.config.database import SessionLocal
             db = SessionLocal()
-            service = BackupService()
-            backup_file = service.backup()
+            service = BackupService(db)
+            backup_file = service.create_backup()
             db.close()
             print(f"[BackupService] Бэкап выполнен: {backup_file}")
         except Exception as e:

@@ -80,8 +80,9 @@ class ExportDialog(QDialog):
             4:("PDF Files (*.pdf)",   f"focusgoal_{ts}.pdf"),
         }
         fstr, fname = ext_map[fmt]
+        opts = QFileDialog.Options()
         path, _ = QFileDialog.getSaveFileName(
-            self, "Сохранить", str(Path.home()/"Downloads"/fname), fstr)
+            self, "Сохранить", str(Path.home()/"Downloads"/fname), fstr, options=opts)
         if not path: return
         db = SessionLocal()
         try:

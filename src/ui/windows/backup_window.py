@@ -111,6 +111,13 @@ class BackupWindow(QWidget):
         auto_l.addRow("Хранить копий (макс):", self.keep_count)
         layout.addWidget(auto_g)
 
+        # Кнопка сохранения настроек авто-бэкапа
+        save_auto_btn = QPushButton("Сохранить настройки авто‑бэкапа")
+        save_auto_btn.setMinimumHeight(40)
+        save_auto_btn.setObjectName("primaryButton")
+        save_auto_btn.clicked.connect(self._save_backup_settings)
+        layout.addWidget(save_auto_btn)
+
         layout.addStretch()
 
         # Кнопка создания
@@ -153,6 +160,57 @@ class BackupWindow(QWidget):
         finally:
             db.close()
 
+        # Загрузить пользовательские настройки авто-бэкапа (если есть)
+        self._load_backup_settings()
+
+    def _load_backup_settings(self):
+        if not self.user_id:
+            return
+        db = SessionLocal()
+        try:
+            from src.models.user import User
+            user = db.query(User).filter(User.id == self.user_id).first()
+            if not user or not user.settings:
+                return
+            s = user.settings or {}
+            self.auto_check.setChecked(bool(s.get("auto_backup_enabled", True)))
+            t = s.get("auto_backup_time", None)
+            if t:
+                try:
+                    hh, mm = str(t).split(":")
+                    self.auto_time.setTime(QTime(int(hh), int(mm)))
+                except Exception:
+                    pass
+            self.keep_count.setValue(int(s.get("backup_keep_count", self.keep_count.value())))
+            # Если включено — запланировать задачу через NotificationService
+            try:
+                if s.get("auto_backup_enabled"):
+                    from src.services.notification_service import NotificationService
+                    NotificationService.start_scheduler()
+                    db2 = SessionLocal()
+                    notif = NotificationService(db2)
+                    parts = (s.get("auto_backup_time") or "02:00").split(":")
+                    job_id = f"daily_backup_user_{self.user_id}"
+                    if job_id in NotificationService._jobs:
+                        try:
+                            NotificationService._scheduler.remove_job(job_id)
+                        except Exception:
+                            pass
+                    from apscheduler.triggers.cron import CronTrigger
+                    trigger = CronTrigger(hour=int(parts[0]), minute=int(parts[1]))
+                    job = NotificationService._scheduler.add_job(
+                        notif._do_backup_user,
+                        trigger=trigger,
+                        id=job_id,
+                        args=[self.user_id],
+                        replace_existing=True
+                    )
+                    NotificationService._jobs[job_id] = job
+            except Exception:
+                pass
+        finally:
+            db.close()
+
     def _on_selected(self, item: QListWidgetItem):
         path = item.data(Qt.UserRole)
         if not path:
@@ -180,6 +238,11 @@ class BackupWindow(QWidget):
         try:
             svc = BackupService(db)
             path = svc.create_backup()
+            # Обрезать старые копии по настройке из UI
+            try:
+                svc.cleanup_old_backups(max_count=int(self.keep_count.value()))
+            except Exception:
+                pass
             self._hide_progress()
             QMessageBox.information(self, "Успех", f"Резервная копия создана:\n{path}")
             self._load_backups()
@@ -242,6 +305,66 @@ class BackupWindow(QWidget):
             self._load_backups()
         except Exception as e:
             QMessageBox.warning(self, "Ошибка", str(e))
+
+    def _save_backup_settings(self):
+        if not self.user_id:
+            QMessageBox.warning(self, "Ошибка", "Требуется вход пользователя для сохранения настроек")
+            return
+        db = SessionLocal()
+        try:
+            from src.models.user import User
+            user = db.query(User).filter(User.id == self.user_id).first()
+            if not user:
+                QMessageBox.warning(self, "Ошибка", "Пользователь не найден")
+                return
+            s = dict(user.settings or {})
+            s.update({
+                "auto_backup_enabled": bool(self.auto_check.isChecked()),
+                "auto_backup_time": self.auto_time.time().toString("HH:mm"),
+                "backup_keep_count": int(self.keep_count.value()),
+            })
+            user.settings = s
+            db.commit()
+            QMessageBox.information(self, "Успех", "Настройки авто‑бэкапа сохранены")
+
+            # Обновить планировщик: добавить/удалить задачу
+            try:
+                from src.services.notification_service import NotificationService
+                NotificationService.start_scheduler()
+                job_id = f"daily_backup_user_{self.user_id}"
+                if not s.get("auto_backup_enabled"):
+                    try:
+                        if job_id in NotificationService._jobs:
+                            NotificationService._scheduler.remove_job(job_id)
+                            NotificationService._jobs.pop(job_id, None)
+                    except Exception:
+                        pass
+                else:
+                    parts = s.get("auto_backup_time", "02:00").split(":")
+                    from apscheduler.triggers.cron import CronTrigger
+                    db2 = SessionLocal()
+                    notif = NotificationService(db2)
+                    if job_id in NotificationService._jobs:
+                        try:
+                            NotificationService._scheduler.remove_job(job_id)
+                        except Exception:
+                            pass
+                    trigger = CronTrigger(hour=int(parts[0]), minute=int(parts[1]))
+                    job = NotificationService._scheduler.add_job(
+                        notif._do_backup_user,
+                        trigger=trigger,
+                        id=job_id,
+                        args=[self.user_id],
+                        replace_existing=True
+                    )
+                    NotificationService._jobs[job_id] = job
+            except Exception:
+                pass
+
+        except Exception as e:
+            QMessageBox.warning(self, "Ошибка", str(e))
+        finally:
+            db.close()
 
     def _show_progress(self, msg: str):
         self.progress_bar.setRange(0, 0)

@@ -195,11 +195,12 @@ class StatisticsWindow(QWidget):
     def _export_pdf(self):
         from pathlib import Path
         from datetime import datetime
+        opts = QFileDialog.Options()
         path, _ = QFileDialog.getSaveFileName(
             self, "Сохранить PDF",
             str(Path.home() / "Downloads" /
                 f"focusgoal_{datetime.now().strftime('%Y%m%d')}.pdf"),
-            "PDF (*.pdf)"
+            "PDF (*.pdf)", options=opts
         )
         if not path: return
         db = SessionLocal()
@@ -215,11 +216,12 @@ class StatisticsWindow(QWidget):
     def _export_csv(self):
         from pathlib import Path
         from datetime import datetime
+        opts = QFileDialog.Options()
         path, _ = QFileDialog.getSaveFileName(
             self, "Сохранить CSV",
             str(Path.home() / "Downloads" /
                 f"focusgoal_{datetime.now().strftime('%Y%m%d')}.csv"),
-            "CSV (*.csv)"
+            "CSV (*.csv)", options=opts
         )
         if not path: return
         db = SessionLocal()
@@ -235,11 +237,12 @@ class StatisticsWindow(QWidget):
     def _export_json(self):
         from pathlib import Path
         from datetime import datetime
+        opts = QFileDialog.Options()
         path, _ = QFileDialog.getSaveFileName(
             self, "Сохранить JSON",
             str(Path.home() / "Downloads" /
                 f"focusgoal_{datetime.now().strftime('%Y%m%d')}.json"),
-            "JSON (*.json)"
+            "JSON (*.json)", options=opts
         )
         if not path: return
         db = SessionLocal()

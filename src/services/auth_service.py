@@ -41,13 +41,8 @@ class AuthService:
         return True, ""
 
     def register(self, nickname: str, password: str,
-                 email: str = None, timezone_name: str = "Europe/Moscow",
-                 gdpr_consent: bool = True) -> Dict:
-        """Регистрация с обязательным согласием ПДн (ТЗ 152-ФЗ, ст.9)"""
-        if not gdpr_consent:
-            raise ValueError(
-                "Необходимо дать согласие на обработку персональных данных (ФЗ-152)"
-            )
+                 email: str = None, timezone_name: str = "Europe/Moscow") -> Dict:
+        """Регистрация пользователя"""
         ok, err = self.validate_nickname(nickname)
         if not ok: raise ValueError(err)
         ok, err = self.validate_password(password)
@@ -63,7 +58,6 @@ class AuthService:
             password_hash=self.hash_password(password),
             timezone=timezone_name,
             settings={},
-            gdpr_consent=now_local,  # фиксируем дату согласия ПДн
         )
         return {
             "id": user.id,
@@ -100,17 +94,18 @@ class AuthService:
         return True
 
     def delete_user_data(self, user_id: int) -> bool:
-        """Запрос удаления ПДн (ст.21 152-ФЗ) — мягкое удаление, исполнение через 24 ч"""
+        """Немедленное удаление аккаунта и всех связанных данных"""
         user = self.db.query(User).filter(User.id == user_id).first()
-        if not user: return False
-        s = user.settings or {}
-        s["deletion_requested"] = True
-        s["deletion_date"] = (
-            datetime.now() + timedelta(hours=24)
-        ).isoformat()
-        user.settings = s
-        self.db.commit()
-        return True
+        if not user:
+            return False
+        try:
+            # Удаляем пользователя; каскадное удаление настроено через FK
+            self.db.delete(user)
+            self.db.commit()
+            return True
+        except Exception:
+            self.db.rollback()
+            return False
 
     def _is_blocked(self, nick: str) -> bool:
         if nick not in self._failed: return False

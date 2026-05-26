@@ -132,6 +132,29 @@ class CreateHabitDialog(QDialog):
         finally:
             db.close()
 
+            # Попробовать загрузить существующее напоминание для этой привычки
+            try:
+                from src.repositories.notification_repository import NotificationRepository
+                notif_repo = NotificationRepository(db)
+                notifs = notif_repo.get_by_user(self.user_id)
+                for n in notifs:
+                    if habit.name and habit.name in (n.content or ""):
+                        if hasattr(n, 'send_at') and n.send_at:
+                            self.remind_check.setChecked(True)
+                            try:
+                                t = n.send_at
+                                self.remind_time.setTime(QTime(t.hour, t.minute))
+                            except Exception:
+                                pass
+                        break
++            # Сохранить оригинальное имя привычки для обновления напоминаний
++            try:
++                self._original_name = habit.name
++            except Exception:
++                self._original_name = None
+            except Exception:
+                pass
+
     def _save(self):
         name = self.name_input.text().strip()
         if len(name) < 3:
@@ -154,9 +177,59 @@ class CreateHabitDialog(QDialog):
             if self.habit_id:
                 svc.update_habit(self.habit_id, self.user_id, data)
                 QMessageBox.information(self, "Успех", f"Привычка «{name}» обновлена!")
+                # Удалить старые напоминания, которые содержат старое имя привычки
+                try:
+                    from src.models.notification import NotificationSchedule
+                    old_name = getattr(self, '_original_name', name)
+                    db.query(NotificationSchedule).filter(
+                        NotificationSchedule.user_id == self.user_id,
+                        NotificationSchedule.content.ilike(f"%{old_name}%")
+                    ).delete(synchronize_session=False)
+                    db.commit()
+                except Exception:
+                    db.rollback()
+                # Создать новое напоминание если отмечено
+                if self.remind_check.isChecked():
+                    try:
+                        from src.models.notification import NotificationSchedule
+                        from datetime import datetime as dt, timezone, timedelta
+                        remind_time = self.remind_time.time()
+                        now = dt.now(timezone.utc)
+                        reminder_dt = now.replace(hour=remind_time.hour(), minute=remind_time.minute(), second=0, microsecond=0)
+                        if reminder_dt <= now:
+                            reminder_dt = reminder_dt + timedelta(days=1)
+                        notification = NotificationSchedule(
+                            user_id=self.user_id,
+                            type_id=1,
+                            send_at=reminder_dt,
+                            content=f"Напоминание о привычке: {name}",
+                            delivery_status_id=2
+                        )
+                        db.add(notification); db.commit()
+                    except Exception:
+                        db.rollback()
             else:
                 svc.create_habit(self.user_id, data)
                 QMessageBox.information(self, "Успех", f"Привычка «{name}» создана!")
+                if self.remind_check.isChecked():
+                    try:
+                        from src.models.notification import NotificationSchedule
+                        from datetime import datetime as dt, timezone, timedelta
+                        remind_time = self.remind_time.time()
+                        now = dt.now(timezone.utc)
+                        reminder_dt = now.replace(hour=remind_time.hour(), minute=remind_time.minute(), second=0, microsecond=0)
+                        if reminder_dt <= now:
+                            reminder_dt = reminder_dt + timedelta(days=1)
+                        notification = NotificationSchedule(
+                            user_id=self.user_id,
+                            type_id=1,
+                            send_at=reminder_dt,
+                            content=f"Напоминание о привычке: {name}",
+                            delivery_status_id=2
+                        )
+                        db.add(notification); db.commit()
+                    except Exception:
+                        db.rollback()
             self.accept()
         except Exception as e:
             QMessageBox.warning(self, "Ошибка", str(e))

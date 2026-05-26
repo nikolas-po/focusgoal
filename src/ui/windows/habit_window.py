@@ -125,6 +125,7 @@ class HabitWindow(QWidget):
                 card.habit_completed.connect(self._on_completed)
                 card.habit_edited.connect(self._on_edited)
                 card.habit_deleted.connect(self._on_deleted)
+                card.habit_viewed.connect(self._on_viewed)
                 self.cards_layout.addWidget(card, i // 3, i % 3)
 
             self.status_lbl.setText(f"Найдено: {len(habits)} привычек")
@@ -183,3 +184,8 @@ class HabitWindow(QWidget):
         self.status_combo.setCurrentIndex(0)
         self.type_combo.setCurrentIndex(0)
         self._load_habits()
+
+    def _on_viewed(self, habit_id: int):
+        from src.ui.dialogs.habit_detail_dialog import HabitDetailDialog
+        d = HabitDetailDialog(habit_id, user_id=self.user_id, parent=self)
+        d.exec_()

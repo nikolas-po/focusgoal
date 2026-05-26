@@ -14,6 +14,10 @@ class GoalService:
 
     def create_goal(self, user_id: int, data: Dict) -> Goal:
         data["user_id"] = user_id
+        # Валидация описания
+        desc = (data.get("description") or "").strip()
+        if desc and len(desc) < 10:
+            raise ValueError("Описание цели должно быть минимум 10 символов")
         return self.goal_repo.create(**data)
 
     def get_goals(self, user_id: int, filters: Dict = None) -> List[Goal]:
@@ -22,6 +26,9 @@ class GoalService:
     def update_goal(self, goal_id: int, user_id: int, data: Dict) -> Optional[Goal]:
         goal = self.goal_repo.get_by_id(goal_id)
         if goal and goal.user_id == user_id:
+            desc = data.get("description")
+            if desc is not None and desc.strip() and len(desc.strip()) < 10:
+                raise ValueError("Описание цели должно быть минимум 10 символов")
             return self.goal_repo.update(goal_id, **data)
         return None
 

@@ -14,10 +14,52 @@ class BackupService:
         self.settings = Settings()
         self.settings.BACKUP_DIR.mkdir(parents=True, exist_ok=True)
 
-    def create_backup(self, label: str = "") -> str:
-        """Создать резервную копию БД через pg_dump"""
+    def create_backup(self, label: str = "", user_id: int = None) -> str:
+        """Создать резервную копию.
+
+        Если передан `user_id`, создаётся пользовательский экспорт (JSON) только
+        с данными этого пользователя. Если `user_id` не указан — выполняется полный
+        дамп всей БД через `pg_dump`.
+        """
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         suffix = f"_{label}" if label else ""
+
+        if user_id is not None:
+            # Экспорт данных конкретного пользователя в JSON
+            out_file = self.settings.BACKUP_DIR / f"backup_user_{user_id}_{timestamp}{suffix}.json"
+            try:
+                import json
+                data = {}
+                # Список таблиц, содержащих user_id
+                tables = [
+                    ("user", "user"),
+                    ("goal", "goal"),
+                    ("habit", "habit"),
+                    ("notification_schedule", "notification_schedule"),
+                    ("blocked_app", "blocked_app"),
+                    ("focus_session", "focus_session"),
+                    ("completion_log", "completion_log"),
+                ]
+                for key, tbl in tables:
+                    try:
+                        rows = []
+                        res = self.db.execute(f"SELECT * FROM {tbl} WHERE user_id = :uid", {"uid": user_id})
+                        cols = [c[0] for c in res.cursor.description] if hasattr(res, 'cursor') and res.cursor is not None else []
+                        for r in res.fetchall():
+                            if cols:
+                                rows.append({cols[i]: r[i] for i in range(len(cols))})
+                            else:
+                                # fallback: map by positional
+                                rows.append(list(r))
+                        data[key] = rows
+                    except Exception:
+                        data[key] = []
+                out_file.write_text(json.dumps(data, default=str, ensure_ascii=False, indent=2))
+                return str(out_file)
+            except Exception as e:
+                raise RuntimeError(f"user backup failed: {e}")
+
+        # Полный дамп всей БД
         backup_file = self.settings.BACKUP_DIR / f"backup_{timestamp}{suffix}.sql"
 
         env = os.environ.copy()
@@ -93,17 +135,28 @@ class BackupService:
             })
         return result
 
-    def cleanup_old_backups(self):
+    def cleanup_old_backups(self, max_count: int = None):
+        """Удалить старые резервные копии, оставив не более `max_count` последних.
+
+        Если `max_count` не задан — используется значение из настроек.
+        """
         backups = sorted(
             self.settings.BACKUP_DIR.glob("backup_*.sql"),
             key=lambda f: f.stat().st_mtime,
         )
-        max_count = self.settings.BACKUP_RETENTION_DAYS
+        if max_count is None:
+            max_count = int(self.settings.BACKUP_RETENTION_DAYS or 7)
         for old in backups[:-max_count]:
-            old.unlink(missing_ok=True)
+            try:
+                old.unlink(missing_ok=True)
+            except Exception:
+                pass
             sha = old.with_suffix(".sql.sha256")
-            if sha.exists():
-                sha.unlink()
+            try:
+                if sha.exists():
+                    sha.unlink()
+            except Exception:
+                pass
 
     @staticmethod
     def _checksum(file_path: str) -> str:

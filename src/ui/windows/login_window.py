@@ -197,8 +197,15 @@ class LoginWindow(BaseAuthWindow):
         from PyQt5.QtWidgets import QApplication
         from src.main import apply_saved_theme, safe_raise
         from src.ui.windows.main_window import MainWindow
+        from src.services.notification_service import NotificationService
         self.main_window = MainWindow(user_data)
         apply_saved_theme(QApplication.instance(), user_data["id"])
+        try:
+            NotificationService.start_scheduler()
+            notif_service = NotificationService(SessionLocal(), user_data["id"])
+            notif_service.schedule_notifications(interval_minutes=1)
+        except Exception:
+            pass
         self.main_window.show()
         safe_raise(self.main_window)
         self.close()

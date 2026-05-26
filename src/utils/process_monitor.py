@@ -5,6 +5,7 @@ import subprocess
 from pathlib import Path
 from typing import List, Dict, Callable, Optional
 import psutil
+import time
 
 
 def _run_py() -> str:
@@ -68,7 +69,32 @@ class ProcessMonitor:
                 if os.environ.get(k):
                     cmd.append(f"{k}={os.environ[k]}")
             cmd += [sys.executable, run_py] + extra
-            subprocess.Popen(cmd)
-            return True
+            try:
+                subprocess.Popen(cmd)
+            except Exception:
+                return False
+
+            deadline = time.time() + 5.0
+            close_arg = f"--close-pid={os.getpid()}"
+            while time.time() < deadline:
+                try:
+                    for pr in psutil.process_iter(attrs=['pid', 'name', 'cmdline']):
+                        try:
+                            cmdline = pr.info.get('cmdline') or []
+                            # Проверяем, что в командной строке присутствует наш run.py
+                            # и передан аргумент --close-pid (тот же PID), и процесс запущен от root.
+                            if any(str(run_py) in str(c) or 'run.py' in str(c) for c in cmdline) and any(close_arg in str(c) for c in cmdline):
+                                try:
+                                    # Некоторые процессы могут не позволять читать uid; игнорируем в таком случае
+                                    if pr.uids().effective == 0:
+                                        return True
+                                except Exception:
+                                    pass
+                        except (psutil.NoSuchProcess, psutil.AccessDenied):
+                            continue
+                except Exception:
+                    pass
+                time.sleep(0.2)
+            return False
         except Exception:
             return False

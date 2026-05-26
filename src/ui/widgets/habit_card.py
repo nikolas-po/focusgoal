@@ -1,7 +1,7 @@
 """Карточка привычки (ТЗ FR-003.2)"""
 from PyQt5.QtWidgets import (
     QFrame, QVBoxLayout, QHBoxLayout, QLabel,
-    QPushButton, QProgressBar
+    QPushButton, QProgressBar, QSizePolicy
 )
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QColor
@@ -11,6 +11,7 @@ class HabitCard(QFrame):
     habit_completed = pyqtSignal(int)
     habit_edited    = pyqtSignal(int)
     habit_deleted   = pyqtSignal(int)
+    habit_viewed    = pyqtSignal(int)
 
     def __init__(self, habit_data: dict, parent=None):
         super().__init__(parent)
@@ -36,6 +37,7 @@ class HabitCard(QFrame):
         # Заголовок + статус
         title_row = QHBoxLayout()
         name_label = QLabel(self.habit_name[:30])
+        name_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         name_label.setProperty("role", "boldText")
         name_label.setWordWrap(True)
         title_row.addWidget(name_label, 1)
@@ -68,6 +70,7 @@ class HabitCard(QFrame):
         # Кнопки
         btn_row = QHBoxLayout()
         btn_row.setSpacing(10)
+        btn_row.setAlignment(Qt.AlignRight)
 
         done_btn = QPushButton("✓")
         done_btn.setObjectName("circlePrimaryButton")
@@ -75,21 +78,32 @@ class HabitCard(QFrame):
         done_btn.setToolTip("Отметить выполненной")
         done_btn.setEnabled(self.status == 1)
         done_btn.clicked.connect(lambda: self.habit_completed.emit(self.habit_id))
+        done_btn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
 
         edit_btn = QPushButton("✎")
         edit_btn.setObjectName("circleSecondaryButton")
         edit_btn.setFixedSize(36, 36)
         edit_btn.setToolTip("Редактировать")
         edit_btn.clicked.connect(lambda: self.habit_edited.emit(self.habit_id))
+        edit_btn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
 
         del_btn = QPushButton("🗑")
         del_btn.setObjectName("dangerCircleButton")
         del_btn.setFixedSize(36, 36)
         del_btn.setToolTip("Удалить")
         del_btn.clicked.connect(lambda: self.habit_deleted.emit(self.habit_id))
+        del_btn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+
+        view_btn = QPushButton("👁")
+        view_btn.setObjectName("circleSecondaryButton")
+        view_btn.setFixedSize(36, 36)
+        view_btn.setToolTip("Просмотр")
+        view_btn.clicked.connect(lambda: self.habit_viewed.emit(self.habit_id))
+        view_btn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
 
         btn_row.addWidget(done_btn)
         btn_row.addWidget(edit_btn)
+        btn_row.addWidget(view_btn)
         btn_row.addWidget(del_btn)
         btn_row.addStretch()
         layout.addLayout(btn_row)

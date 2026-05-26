@@ -11,6 +11,7 @@ from src.config.constants import (
     GOAL_STATUS_NAMES, GOAL_PRIORITY_NAMES,
     REPEAT_TYPE_NAMES, FAIL_BEHAVIOR_NAMES
 )
+from src.repositories.notification_repository import NotificationRepository
 
 
 class GoalDetailDialog(QDialog):
@@ -67,6 +68,22 @@ class GoalDetailDialog(QDialog):
             form.addRow("Создана:", QLabel(created.strftime("%d.%m.%Y")))
 
         layout.addWidget(info_g)
+        # Показать напоминания, связанные с этой целью
+        try:
+            db2 = SessionLocal()
+            notif_repo = NotificationRepository(db2)
+            notifs_all = notif_repo.get_by_user(self.user_id) if self.user_id else []
+            related = [n for n in notifs_all if self.goal_data.get('name') and self.goal_data.get('name') in (n.content or "")]
+            if related:
+                rem_g = QGroupBox("Напоминания")
+                rl = QVBoxLayout(rem_g)
+                for n in related:
+                    s = n.send_at
+                    rl.addWidget(QLabel(f"{s}: {n.content} ({'Отправлено' if n.delivery_status_id==3 else 'Ожидает'})"))
+                layout.addWidget(rem_g)
+            db2.close()
+        except Exception:
+            pass
         layout.addStretch()
 
         btn_row = QHBoxLayout()

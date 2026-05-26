@@ -96,10 +96,12 @@ class ImportDialog(QDialog):
         outer.addWidget(scroll)
 
     def _select_file(self):
+        opts = QFileDialog.Options()
         path, _ = QFileDialog.getOpenFileName(
             self, "Выбрать файл",
             "",
-            "JSON/CSV Files (*.json *.csv);;All Files (*)"
+            "JSON/CSV Files (*.json *.csv);;All Files (*)",
+            options=opts
         )
         if path:
             self.file_path = path

@@ -95,12 +95,6 @@ class RegisterWindow(BaseAuthWindow):
         self.tz_combo.setMinimumHeight(38)
         cl.addWidget(self.tz_combo)
 
-        # GDPR согласие
-        self.gdpr_check = QCheckBox(
-            "Я согласен(а) на обработку персональных данных (ФЗ-152)"
-        )
-        self.gdpr_check.setObjectName("gdprCheckbox")
-        cl.addWidget(self.gdpr_check)
 
         # Ошибки
         self.error_label = self._create_error_label("registerErrorLabel")
@@ -182,13 +176,10 @@ class RegisterWindow(BaseAuthWindow):
         if password != password2:
             self._show_error(self.error_label, "Пароли не совпадают")
             return
-        if not self.gdpr_check.isChecked():
-            self._show_error(self.error_label, "Необходимо согласие на обработку ПДн (ФЗ-152)")
-            return
 
         db = SessionLocal()
         try:
-            AuthService(db).register(nickname, password, email, timezone, gdpr_consent=True)
+            AuthService(db).register(nickname, password, email, timezone)
             QMessageBox.information(
                 self,
                 "Регистрация успешна",

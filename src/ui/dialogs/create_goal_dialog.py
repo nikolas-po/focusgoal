@@ -134,6 +134,25 @@ class CreateGoalDialog(QDialog):
             self.repeat_combo.setCurrentIndex(rmap.get(goal.repeat_type_id, 0))
             fmap = {1: 0, 2: 1}
             self.fail_combo.setCurrentIndex(fmap.get(goal.fail_behavior_id, 1))
+            # Сохранить оригинальное имя для корректного поиска напоминаний при обновлении
+            self._original_name = goal.name
+            # Попробовать загрузить существующее напоминание для этой цели
+            try:
+                from src.repositories.notification_repository import NotificationRepository
+                notif_repo = NotificationRepository(db)
+                notifs = notif_repo.get_by_user(self.user_id)
+                for n in notifs:
+                    if self._original_name and self._original_name in (n.content or ""):
+                        if hasattr(n, 'send_at') and n.send_at:
+                            self.remind_check.setChecked(True)
+                            try:
+                                t = n.send_at
+                                self.remind_time.setTime(QTime(t.hour, t.minute))
+                            except Exception:
+                                pass
+                        break
+            except Exception:
+                pass
         except Exception as e:
             QMessageBox.warning(self, "Ошибка", str(e))
         finally:
@@ -169,6 +188,41 @@ class CreateGoalDialog(QDialog):
             if self.goal_id:
                 svc.update_goal(self.goal_id, self.user_id, data)
                 QMessageBox.information(self, "Успех", f"Цель «{name}» обновлена!")
+                # Обновить/удалить напоминание: удалить старые напоминания с упоминанием предыдущего названия
+                try:
+                    from src.models.notification import NotificationSchedule
+                    # удалить напоминания, которые содержат старое имя цели
+                    if hasattr(self, '_original_name') and self._original_name:
+                        db.query(NotificationSchedule).filter(
+                            NotificationSchedule.user_id == self.user_id,
+                            NotificationSchedule.content.ilike(f"%{self._original_name}%")
+                        ).delete(synchronize_session=False)
+                        db.commit()
+                except Exception:
+                    db.rollback()
+                # Создать новое напоминание если отмечено
+                if self.remind_check.isChecked():
+                    try:
+                        from src.models.notification import NotificationSchedule
+                        from datetime import datetime as dt, timezone, timedelta
+                        remind_time = self.remind_time.time()
+                        reminder_dt = dt(deadline.year, deadline.month, deadline.day,
+                                        remind_time.hour(), remind_time.minute(), 0,
+                                        tzinfo=timezone.utc)
+                        now = dt.now(timezone.utc)
+                        if reminder_dt <= now:
+                            reminder_dt = now + timedelta(days=1)
+                            reminder_dt = reminder_dt.replace(hour=remind_time.hour(), minute=remind_time.minute())
+                        notification = NotificationSchedule(
+                            user_id=self.user_id,
+                            type_id=1,
+                            send_at=reminder_dt,
+                            content=f"Напоминание: выполните цель «{name}»",
+                            delivery_status_id=2
+                        )
+                        db.add(notification); db.commit()
+                    except Exception:
+                        db.rollback()
             else:
                 goal = svc.create_goal(self.user_id, data)
                 QMessageBox.information(self, "Успех", f"Цель «{name}» создана!")
