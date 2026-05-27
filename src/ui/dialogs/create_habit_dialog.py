@@ -132,26 +132,28 @@ class CreateHabitDialog(QDialog):
         finally:
             db.close()
 
-            # Попробовать загрузить существующее напоминание для этой привычки
+        # Попробовать загрузить существующее напоминание для этой привычки
+        try:
+            db = SessionLocal()
+            from src.repositories.notification_repository import NotificationRepository
+            notif_repo = NotificationRepository(db)
+            notifs = notif_repo.get_by_user(self.user_id)
+            for n in notifs:
+                if habit and habit.name and habit.name in (n.content or ""):
+                    if hasattr(n, 'send_at') and n.send_at:
+                        self.remind_check.setChecked(True)
+                        try:
+                            t = n.send_at
+                            self.remind_time.setTime(QTime(t.hour, t.minute))
+                        except Exception:
+                            pass
+                    break
+            self._original_name = habit.name if habit else None
+        except Exception:
+            self._original_name = None
+        finally:
             try:
-                from src.repositories.notification_repository import NotificationRepository
-                notif_repo = NotificationRepository(db)
-                notifs = notif_repo.get_by_user(self.user_id)
-                for n in notifs:
-                    if habit.name and habit.name in (n.content or ""):
-                        if hasattr(n, 'send_at') and n.send_at:
-                            self.remind_check.setChecked(True)
-                            try:
-                                t = n.send_at
-                                self.remind_time.setTime(QTime(t.hour, t.minute))
-                            except Exception:
-                                pass
-                        break
-+            # Сохранить оригинальное имя привычки для обновления напоминаний
-+            try:
-+                self._original_name = habit.name
-+            except Exception:
-+                self._original_name = None
+                db.close()
             except Exception:
                 pass
 

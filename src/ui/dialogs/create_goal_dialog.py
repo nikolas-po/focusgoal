@@ -32,7 +32,7 @@ class CreateGoalDialog(QDialog):
         layout.setSpacing(14)
         layout.setContentsMargins(25, 25, 25, 25)
 
-        title_lbl = QLabel("🎯 " + ("Редактировать цель" if self.goal_id else "Новая цель"))
+        title_lbl = QLabel(("Редактировать цель" if self.goal_id else "Новая цель"))
         title_lbl.setProperty("role", "accentTitle")
         title_lbl.setAlignment(Qt.AlignCenter)
         layout.addWidget(title_lbl)
@@ -204,12 +204,11 @@ class CreateGoalDialog(QDialog):
                 if self.remind_check.isChecked():
                     try:
                         from src.models.notification import NotificationSchedule
-                        from datetime import datetime as dt, timezone, timedelta
+                        from datetime import datetime, timedelta
                         remind_time = self.remind_time.time()
-                        reminder_dt = dt(deadline.year, deadline.month, deadline.day,
-                                        remind_time.hour(), remind_time.minute(), 0,
-                                        tzinfo=timezone.utc)
-                        now = dt.now(timezone.utc)
+                        now = datetime.now()
+                        reminder_dt = datetime(deadline.year, deadline.month, deadline.day,
+                                        remind_time.hour(), remind_time.minute(), 0)
                         if reminder_dt <= now:
                             reminder_dt = now + timedelta(days=1)
                             reminder_dt = reminder_dt.replace(hour=remind_time.hour(), minute=remind_time.minute())
@@ -230,17 +229,16 @@ class CreateGoalDialog(QDialog):
                 # Создать напоминание если отмечена галочка
                 if self.remind_check.isChecked():
                     from src.models.notification import NotificationSchedule
-                    from datetime import datetime as dt, timezone, timedelta
+                    from datetime import datetime, timedelta
                     
                     remind_time = self.remind_time.time()
                     qd = self.deadline_edit.date()
                     # Объединить дату дедлайна и время напоминания
-                    reminder_dt = dt(qd.year(), qd.month(), qd.day(), 
-                                    remind_time.hour(), remind_time.minute(), 0, 
-                                    tzinfo=timezone.utc)
+                    reminder_dt = datetime(qd.year(), qd.month(), qd.day(), 
+                                    remind_time.hour(), remind_time.minute(), 0)
                     
                     # Если время уже прошло, перенести на завтра
-                    now = dt.now(timezone.utc)
+                    now = datetime.now()
                     if reminder_dt <= now:
                         reminder_dt = now + timedelta(days=1)
                         reminder_dt = reminder_dt.replace(hour=remind_time.hour(), minute=remind_time.minute())

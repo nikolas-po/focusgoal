@@ -2,9 +2,9 @@
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QTableWidget, QTableWidgetItem, QComboBox,
-    QMessageBox, QHeaderView, QGroupBox, QSizePolicy
+    QMessageBox, QHeaderView, QGroupBox, QSizePolicy, QLineEdit
 )
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QFont
 from src.config.database import SessionLocal
 from src.repositories.goal_repository import GoalRepository
@@ -47,6 +47,29 @@ class GoalWindow(QWidget):
         
         filter_l.addStretch()
         layout.addWidget(filter_g)
+
+        #  Поиск по всем полям 
+        search_g = QGroupBox("Поиск по всем полям")
+        search_l = QHBoxLayout(search_g)
+        self.search_edit = QLineEdit()
+        self.search_edit.setPlaceholderText(
+            "Введите текст для поиска по названию, описанию, статусу, приоритету, дедлайну…"
+        )
+        self.search_edit.setMinimumHeight(34)
+        self.search_edit.setClearButtonEnabled(True)
+        # обновляем через 300 мс после последнего ввода
+        self._search_timer = QTimer(self)
+        self._search_timer.setSingleShot(True)
+        self._search_timer.setInterval(300)
+        self._search_timer.timeout.connect(self.load_goals)
+        self.search_edit.textChanged.connect(lambda: self._search_timer.start())
+        search_l.addWidget(self.search_edit)
+        clear_btn = QPushButton("✕ Очистить")
+        clear_btn.setMinimumHeight(34)
+        clear_btn.setFixedWidth(100)
+        clear_btn.clicked.connect(lambda: self.search_edit.clear())
+        search_l.addWidget(clear_btn)
+        layout.addWidget(search_g)
 
         # Кнопки действий - горизонтально в одну строку
         actions_l = QHBoxLayout()
@@ -122,18 +145,36 @@ class GoalWindow(QWidget):
             
             status_filter = self.status_combo.currentText()
             priority_filter = self.priority_combo.currentText()
-            
+            search_text = self.search_edit.text().strip().lower() if hasattr(self, "search_edit") else ""
+
+            priority_names = {1: "Высокий", 2: "Средний", 3: "Низкий"}
+            status_names = {1: "Активная", 2: "Выполнена", 3: "Просрочена", 4: "Удалена", 5: "В архиве"}
+
             row = 0
             for goal in goals:
-                # Применить фильтры
+                #  Фильтр по статусу 
                 if status_filter != "Все":
                     status_map = {"Активные": 1, "Выполненные": 2, "Просроченные": 3}
                     if goal.status_id != status_map.get(status_filter):
                         continue
                 
+                #  Фильтр по приоритету 
                 if priority_filter != "Любой":
                     priority_map = {"Высокий": 1, "Средний": 2, "Низкий": 3}
                     if goal.priority_id != priority_map.get(priority_filter):
+                        continue
+
+                #  Поиск по всем полям 
+                if search_text:
+                    deadline_str = goal.deadline.date().strftime("%d.%m.%Y") if goal.deadline else ""
+                    fields = [
+                        (goal.name or "").lower(),
+                        (goal.description or "").lower(),
+                        priority_names.get(goal.priority_id, "").lower(),
+                        status_names.get(goal.status_id, "").lower(),
+                        deadline_str.lower(),
+                    ]
+                    if not any(search_text in f for f in fields):
                         continue
                 
                 self.table.insertRow(row)
@@ -152,16 +193,9 @@ class GoalWindow(QWidget):
                 self.table.setItem(row, 2, QTableWidgetItem(deadline_str))
                 
                 # Приоритет
-                priority_names = {1: "Высокий", 2: "Средний", 3: "Низкий"}
                 self.table.setItem(row, 3, QTableWidgetItem(priority_names.get(goal.priority_id, "?")))
                 
                 # Статус
-                status_names = {
-                    1: "Активная",
-                    2: "Выполнена",
-                    3: "Просрочена",
-                    4: "Отменена"
-                }
                 self.table.setItem(row, 4, QTableWidgetItem(status_names.get(goal.status_id, "?")))
                 
                 # Описание

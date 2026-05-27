@@ -1,7 +1,7 @@
 """Карточка привычки (ТЗ FR-003.2)"""
 from PyQt5.QtWidgets import (
     QFrame, QVBoxLayout, QHBoxLayout, QLabel,
-    QPushButton, QProgressBar, QSizePolicy
+    QPushButton, QProgressBar, QSizePolicy, QLayout
 )
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QColor
@@ -70,7 +70,9 @@ class HabitCard(QFrame):
         # Кнопки
         btn_row = QHBoxLayout()
         btn_row.setSpacing(10)
-        btn_row.setAlignment(Qt.AlignRight)
+        btn_row.setContentsMargins(0, 0, 0, 0)
+        btn_row.setSizeConstraint(QLayout.SetMinimumSize)
+        btn_row.addStretch(1)
 
         done_btn = QPushButton("✓")
         done_btn.setObjectName("circlePrimaryButton")
@@ -105,7 +107,6 @@ class HabitCard(QFrame):
         btn_row.addWidget(edit_btn)
         btn_row.addWidget(view_btn)
         btn_row.addWidget(del_btn)
-        btn_row.addStretch()
         layout.addLayout(btn_row)
 
     def _apply_style(self):

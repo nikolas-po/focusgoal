@@ -2,9 +2,9 @@
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel,
     QPushButton, QComboBox, QGroupBox, QScrollArea,
-    QGridLayout, QMessageBox
+    QGridLayout, QMessageBox, QLineEdit
 )
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QTimer
 from src.config.database import SessionLocal
 from src.services.habit_service import HabitService
 
@@ -55,6 +55,28 @@ class HabitWindow(QWidget):
         fl.addStretch()
         layout.addWidget(fg)
 
+        #  Поиск по всем полям 
+        search_g = QGroupBox("Поиск по всем полям")
+        search_l = QHBoxLayout(search_g)
+        self.search_edit = QLineEdit()
+        self.search_edit.setPlaceholderText(
+            "Введите текст для поиска по названию, описанию, типу, статусу…"
+        )
+        self.search_edit.setMinimumHeight(34)
+        self.search_edit.setClearButtonEnabled(True)
+        self._search_timer = QTimer(self)
+        self._search_timer.setSingleShot(True)
+        self._search_timer.setInterval(300)
+        self._search_timer.timeout.connect(self._load_habits)
+        self.search_edit.textChanged.connect(lambda: self._search_timer.start())
+        search_l.addWidget(self.search_edit)
+        clear_btn = QPushButton("✕ Очистить")
+        clear_btn.setMinimumHeight(34)
+        clear_btn.setFixedWidth(100)
+        clear_btn.clicked.connect(lambda: self.search_edit.clear())
+        search_l.addWidget(clear_btn)
+        layout.addWidget(search_g)
+
         add_btn = QPushButton("Новая привычка")
         add_btn.setMinimumHeight(40)
         add_btn.setObjectName("primaryButton")
@@ -99,6 +121,25 @@ class HabitWindow(QWidget):
             else: habits = [h for h in habits if h.status_id != 4]
 
             if ti > 0: habits = [h for h in habits if h.type_id == ti]
+
+            #  Поиск по всем полям 
+            search_text = self.search_edit.text().strip().lower() if hasattr(self, "search_edit") else ""
+            if search_text:
+                type_names = {1: "ежедневная", 2: "еженедельная", 3: "ежемесячная"}
+                mode_names = {1: "бинарная", 2: "количественная"}
+                status_names = {1: "активная", 2: "в архиве", 3: "отключённая", 4: "удалена"}
+                def _matches(h) -> bool:
+                    fields = [
+                        (h.name or "").lower(),
+                        (h.description or "").lower(),
+                        type_names.get(h.type_id, "").lower(),
+                        mode_names.get(h.mode_id, "").lower(),
+                        status_names.get(h.status_id, "").lower(),
+                        str(h.current_streak),
+                        str(h.max_streak) if hasattr(h, "max_streak") else "",
+                    ]
+                    return any(search_text in f for f in fields)
+                habits = [h for h in habits if _matches(h)]
 
             if not habits:
                 from PyQt5.QtWidgets import QLabel as QL
@@ -183,6 +224,8 @@ class HabitWindow(QWidget):
     def _reset_filters(self):
         self.status_combo.setCurrentIndex(0)
         self.type_combo.setCurrentIndex(0)
+        if hasattr(self, "search_edit"):
+            self.search_edit.clear()
         self._load_habits()
 
     def _on_viewed(self, habit_id: int):
