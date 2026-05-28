@@ -42,9 +42,7 @@ class CreateHabitDialog(QDialog):
         if habit_id:
             QTimer.singleShot(50, self._load_habit)
 
-    # ─────────────────────────────────────────────────────────────
     # UI
-    # ─────────────────────────────────────────────────────────────
     def _setup_ui(self):
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
@@ -133,9 +131,7 @@ class CreateHabitDialog(QDialog):
     def _on_mode_changed(self, idx: int):
         self.target_spin.setEnabled(idx == 1)
 
-    # ─────────────────────────────────────────────────────────────
     # Загрузка данных для редактирования
-    # ─────────────────────────────────────────────────────────────
     def _load_habit(self):
         """Загрузить поля и существующее напоминание из БД.
 
@@ -181,9 +177,7 @@ class CreateHabitDialog(QDialog):
         finally:
             db.close()
 
-    # ─────────────────────────────────────────────────────────────
     # Сохранение
-    # ─────────────────────────────────────────────────────────────
     def _save(self):
         name = self.name_input.text().strip()
         if len(name) < 3:
@@ -226,9 +220,7 @@ class CreateHabitDialog(QDialog):
         finally:
             db.close()
 
-    # ─────────────────────────────────────────────────────────────
     # Вспомогательные методы для напоминаний
-    # ─────────────────────────────────────────────────────────────
     def _delete_old_reminders(self, db, habit_name: str):
         """Удалить все напоминания связанные с данной привычкой."""
         try:

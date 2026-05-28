@@ -55,7 +55,7 @@ class CreateGoalDialog(QDialog):
         layout.setSpacing(14)
         layout.setContentsMargins(25, 25, 25, 25)
 
-        title_lbl = QLabel("🎯 " + ("Редактировать цель" if self.goal_id else "Новая цель"))
+        title_lbl = QLabel("Редактировать цель" if self.goal_id else "Новая цель")
         title_lbl.setProperty("role", "accentTitle")
         title_lbl.setAlignment(Qt.AlignCenter)
         layout.addWidget(title_lbl)
