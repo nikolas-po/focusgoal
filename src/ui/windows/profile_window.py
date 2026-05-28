@@ -99,6 +99,27 @@ class ProfileWindow(QWidget):
         ll.addWidget(self.log_table)
         tabs.addTab(log_tab, "Журнал событий")
 
+        settings_tab = QWidget()
+        sl = QVBoxLayout(settings_tab)
+        sl.setContentsMargins(10, 10, 10, 10)
+        settings_g = QGroupBox("Часовой пояс")
+        fl = QFormLayout(settings_g)
+        self.tz_combo = QComboBox()
+        self.tz_combo.addItems([
+            "Europe/Moscow", "Europe/London", "Europe/Paris", "Europe/Berlin",
+            "America/New_York", "America/Los_Angeles", "Asia/Tokyo", "Asia/Shanghai",
+            "Australia/Sydney", "UTC"
+        ])
+        self.tz_combo.setMinimumHeight(38)
+        fl.addRow("Часовой пояс:", self.tz_combo)
+        save_tz_btn = QPushButton("Сохранить")
+        save_tz_btn.setMinimumHeight(44)
+        save_tz_btn.clicked.connect(self._save_timezone)
+        fl.addRow("", save_tz_btn)
+        sl.addWidget(settings_g)
+        sl.addStretch()
+        tabs.addTab(settings_tab, "Настройки")
+
         layout.addWidget(tabs)
 
     def _make_card(self, title: str, value: str) -> QFrame:
@@ -134,6 +155,9 @@ class ProfileWindow(QWidget):
             if user:
                 self.reg_lbl.setText(f"Зарегистрирован: {user.registered_at.strftime('%d.%m.%Y')}")
                 self.email_lbl.setText(f"Email: {user.email or 'не указан'}")
+                idx = self.tz_combo.findText(user.timezone or "Europe/Moscow")
+                if idx >= 0:
+                    self.tz_combo.setCurrentIndex(idx)
 
             goals_cnt    = db.query(func.count(Goal.id)).filter(Goal.user_id == self.user_id).scalar() or 0
             habits_cnt   = db.query(func.count(Habit.id)).filter(Habit.user_id == self.user_id).scalar() or 0
@@ -196,6 +220,22 @@ class ProfileWindow(QWidget):
             db.commit()
             self._load_logs()
             QMessageBox.information(self, "Готово", "Журнал очищен")
+        except Exception as e:
+            QMessageBox.warning(self, "Ошибка", str(e))
+        finally:
+            db.close()
+
+    def _save_timezone(self):
+        db = SessionLocal()
+        try:
+            from src.models.user import User
+            user = db.query(User).filter(User.id == self.user_id).first()
+            if user:
+                user.timezone = self.tz_combo.currentText()
+                db.commit()
+                QMessageBox.information(self, "Готово", f"Часовой пояс изменён на {user.timezone}")
+            else:
+                QMessageBox.warning(self, "Ошибка", "Пользователь не найден")
         except Exception as e:
             QMessageBox.warning(self, "Ошибка", str(e))
         finally:
