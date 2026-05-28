@@ -43,6 +43,7 @@ class NotificationInstaller:
 import sys, subprocess
 sys.path.insert(0, {project_root!r})
 
+
 def _notify(title: str, msg: str):
     try:
         subprocess.run(["notify-send", "-a", "FocusGoal", "-i", "dialog-information",
@@ -50,34 +51,52 @@ def _notify(title: str, msg: str):
     except Exception:
         pass
 
+
+def _now_for_timezone(timezone_name: str) -> datetime:
+    try:
+        from datetime import datetime
+        from zoneinfo import ZoneInfo
+        return datetime.now(ZoneInfo(timezone_name)).replace(tzinfo=None)
+    except Exception:
+        from datetime import datetime
+        return datetime.now()
+
+
 def main():
     try:
         from src.config.database import SessionLocal
+        from src.models.user import User
         from src.models.notification_schedule import NotificationSchedule
         from src.models.goal import Goal
-        from src.models.habit import Habit
-        from datetime import datetime, timezone, timedelta
+        from datetime import datetime, timedelta
+
         db = SessionLocal()
-        now = datetime.now()
-        window_start = now - timedelta(minutes=5)
-        pending = db.query(NotificationSchedule).filter(
-            NotificationSchedule.status_id == 2,  # PENDING
-            NotificationSchedule.send_at >= window_start,
-            NotificationSchedule.send_at <= now + timedelta(minutes=1),
-        ).all()
-        for n in pending:
-            _notify("FocusGoal", n.content or "Напоминание")
-            n.status_id = 1  # SENT
-        # Цели с дедлайном сегодня
-        today_end = now.replace(hour=23, minute=59, second=59)
-        today_start = now.replace(hour=0, minute=0, second=0)
-        goals_due = db.query(Goal).filter(
-            Goal.deadline >= today_start,
-            Goal.deadline <= today_end,
-            Goal.status_id == 1,
-        ).all()
-        for g in goals_due:
-            _notify("Срок выполнения цели", f"Сегодня нужно выполнить: «{{g.name}}»")
+        users = db.query(User).all()
+        for user in users:
+            tz = user.timezone or "Europe/Moscow"
+            now = _now_for_timezone(tz)
+            window_start = now - timedelta(minutes=5)
+            pending = db.query(NotificationSchedule).filter(
+                NotificationSchedule.user_id == user.id,
+                NotificationSchedule.status_id == 2,  # PENDING
+                NotificationSchedule.send_at >= window_start,
+                NotificationSchedule.send_at <= now + timedelta(minutes=1),
+            ).all()
+            for n in pending:
+                _notify("FocusGoal", n.content or "Напоминание")
+                n.status_id = 1  # SENT
+
+            today_end = now.replace(hour=23, minute=59, second=59)
+            today_start = now.replace(hour=0, minute=0, second=0)
+            goals_due = db.query(Goal).filter(
+                Goal.user_id == user.id,
+                Goal.deadline >= today_start,
+                Goal.deadline <= today_end,
+                Goal.status_id == 1,
+            ).all()
+            for g in goals_due:
+                _notify("Срок выполнения цели", f"Сегодня нужно выполнить: «{{g.name}}»")
+
         db.commit()
         db.close()
     except Exception as e:

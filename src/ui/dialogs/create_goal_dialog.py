@@ -11,6 +11,29 @@ from src.config.database import SessionLocal
 from src.services.goal_service import GoalService
 
 
+def _get_user_timezone(user_id: int | None) -> str:
+    try:
+        from src.config.database import SessionLocal
+        from src.models.user import User
+        db = SessionLocal()
+        try:
+            user = db.query(User).filter(User.id == user_id).first() if user_id else None
+            return user.timezone if user and user.timezone else "Europe/Moscow"
+        finally:
+            db.close()
+    except Exception:
+        return "Europe/Moscow"
+
+
+def _local_now(user_id: int | None = None) -> datetime:
+    try:
+        from zoneinfo import ZoneInfo
+        tz = _get_user_timezone(user_id)
+        return datetime.now(ZoneInfo(tz)).replace(tzinfo=None)
+    except Exception:
+        return datetime.now()
+
+
 class CreateGoalDialog(QDialog):
     def __init__(self, user_id: int = None, parent=None, goal_id: int = None):
         super().__init__(parent)
@@ -32,7 +55,7 @@ class CreateGoalDialog(QDialog):
         layout.setSpacing(14)
         layout.setContentsMargins(25, 25, 25, 25)
 
-        title_lbl = QLabel(("Редактировать цель" if self.goal_id else "Новая цель"))
+        title_lbl = QLabel("🎯 " + ("Редактировать цель" if self.goal_id else "Новая цель"))
         title_lbl.setProperty("role", "accentTitle")
         title_lbl.setAlignment(Qt.AlignCenter)
         layout.addWidget(title_lbl)
@@ -204,14 +227,23 @@ class CreateGoalDialog(QDialog):
                 if self.remind_check.isChecked():
                     try:
                         from src.models.notification import NotificationSchedule
-                        from datetime import datetime, timedelta
+                        from datetime import datetime as dt, timedelta
                         remind_time = self.remind_time.time()
-                        now = datetime.now()
-                        reminder_dt = datetime(deadline.year, deadline.month, deadline.day,
-                                        remind_time.hour(), remind_time.minute(), 0)
+                        reminder_dt = dt(
+                            deadline.year,
+                            deadline.month,
+                            deadline.day,
+                            remind_time.hour(),
+                            remind_time.minute(),
+                            0,
+                        )
+                        now = _local_now(self.user_id)
                         if reminder_dt <= now:
                             reminder_dt = now + timedelta(days=1)
-                            reminder_dt = reminder_dt.replace(hour=remind_time.hour(), minute=remind_time.minute())
+                            reminder_dt = reminder_dt.replace(
+                                hour=remind_time.hour(),
+                                minute=remind_time.minute(),
+                            )
                         notification = NotificationSchedule(
                             user_id=self.user_id,
                             type_id=1,
@@ -219,7 +251,8 @@ class CreateGoalDialog(QDialog):
                             content=f"Напоминание: выполните цель «{name}»",
                             delivery_status_id=2
                         )
-                        db.add(notification); db.commit()
+                        db.add(notification)
+                        db.commit()
                     except Exception:
                         db.rollback()
             else:
@@ -229,19 +262,24 @@ class CreateGoalDialog(QDialog):
                 # Создать напоминание если отмечена галочка
                 if self.remind_check.isChecked():
                     from src.models.notification import NotificationSchedule
-                    from datetime import datetime, timedelta
+                    from datetime import datetime as dt, timedelta
                     
                     remind_time = self.remind_time.time()
                     qd = self.deadline_edit.date()
                     # Объединить дату дедлайна и время напоминания
-                    reminder_dt = datetime(qd.year(), qd.month(), qd.day(), 
-                                    remind_time.hour(), remind_time.minute(), 0)
+                    reminder_dt = dt(
+                        qd.year(), qd.month(), qd.day(),
+                        remind_time.hour(), remind_time.minute(), 0,
+                    )
                     
                     # Если время уже прошло, перенести на завтра
-                    now = datetime.now()
+                    now = _local_now(self.user_id)
                     if reminder_dt <= now:
                         reminder_dt = now + timedelta(days=1)
-                        reminder_dt = reminder_dt.replace(hour=remind_time.hour(), minute=remind_time.minute())
+                        reminder_dt = reminder_dt.replace(
+                            hour=remind_time.hour(),
+                            minute=remind_time.minute(),
+                        )
                     
                     notification = NotificationSchedule(
                         user_id=self.user_id,

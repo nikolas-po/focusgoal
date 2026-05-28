@@ -62,7 +62,7 @@ class HabitDetailDialog(QDialog):
             except Exception:
                 notifs = []
             if notifs:
-                nl = "\n".join([f"{n.send_at}: {n.content} ({'Отправлено' if n.delivery_status_id==3 else 'Ожидает'})" for n in notifs])
+                nl = "\n".join([f"{n.send_at.strftime('%H:%M')}: {n.content} ({'✓' if n.delivery_status_id==3 else '⏳'})" for n in notifs])
                 self.layout.addWidget(QLabel("Напоминания:"))
                 lbl = QLabel(nl)
                 lbl.setWordWrap(True)

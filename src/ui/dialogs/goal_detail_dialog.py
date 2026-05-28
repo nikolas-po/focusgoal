@@ -68,7 +68,6 @@ class GoalDetailDialog(QDialog):
             form.addRow("Создана:", QLabel(created.strftime("%d.%m.%Y")))
 
         layout.addWidget(info_g)
-        # Показать напоминания, связанные с этой целью
         try:
             db2 = SessionLocal()
             notif_repo = NotificationRepository(db2)
@@ -78,8 +77,9 @@ class GoalDetailDialog(QDialog):
                 rem_g = QGroupBox("Напоминания")
                 rl = QVBoxLayout(rem_g)
                 for n in related:
-                    s = n.send_at
-                    rl.addWidget(QLabel(f"{s}: {n.content} ({'Отправлено' if n.delivery_status_id==3 else 'Ожидает'})"))
+                    time_str = n.send_at.strftime('%H:%M') if n.send_at else '—'
+                    status_icon = '✓' if n.delivery_status_id == 3 else '⏳'
+                    rl.addWidget(QLabel(f"{time_str}: {n.content} {status_icon}"))
                 layout.addWidget(rem_g)
             db2.close()
         except Exception:
