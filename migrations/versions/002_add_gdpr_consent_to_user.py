@@ -1,12 +1,16 @@
-"""002 add gdpr_consent to user
+"""002 remove gdpr_consent placeholder
 
 Revision ID: 002
 Revises: 001
 Create Date: 2025-05-09 00:00:00.000000
+
+Эта миграция изначально добавляла поле gdpr_consent (сбор согласия
+по 152-ФЗ). Поле убрано из проекта — данные хранятся локально,
+обработки персональных данных третьими лицами нет.
+Миграция оставлена как no-op для сохранения цепочки ревизий.
 """
 from alembic import op
 import sqlalchemy as sa
-
 
 revision = "002"
 down_revision = "001"
@@ -15,11 +19,10 @@ depends_on = None
 
 
 def upgrade():
-    op.add_column(
-        "user",
-        sa.Column("gdpr_consent", sa.DateTime, nullable=True)
-    )
+    # no-op: поле gdpr_consent было удалено из схемы до применения 001
+    pass
 
 
 def downgrade():
-    op.drop_column("user", "gdpr_consent")
+    # no-op
+    pass

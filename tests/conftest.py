@@ -137,7 +137,7 @@ def db_session(db_engine):
 def test_user(db_session):
     from src.services.auth_service import AuthService
     auth = AuthService(db_session)
-    return auth.register("testuser", "Password123", "test@mail.ru", gdpr_consent=True)
+    return auth.register("testuser", "Password123", "test@mail.ru")
 
 
 @pytest.fixture

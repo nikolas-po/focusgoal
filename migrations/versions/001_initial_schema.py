@@ -51,7 +51,6 @@ def upgrade():
         sa.Column("timezone", sa.String(50), default="UTC"),
         sa.Column("settings", JSONB, default=dict),
         sa.Column("local_data_path", sa.String(255), nullable=True),
-        sa.Column("gdpr_consent", sa.DateTime, nullable=True),
         sa.Column("created_at", sa.DateTime, nullable=False),
         sa.Column("updated_at", sa.DateTime, nullable=False),
         sa.CheckConstraint("length(trim(nickname)) >= 3", name="chk_user_nickname_length"),

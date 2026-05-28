@@ -158,104 +158,103 @@ class NotificationService:
     def check_goal_deadlines(self):
         """Проверить сроки целей и отправить уведомления.
 
-        Использует свежую сессию БД чтобы получить актуальные данные.
+        Использует переданную сессию self.db.
         Сравнения выполняются в часовом поясе пользователя.
         """
         try:
             from src.models.goal import Goal
-            from src.config.database import SessionLocal
 
             if self.user_id is None:
+                return
+            if self.db is None:
+                print("[NotificationService] Нет сессии БД для проверки целей")
                 return
 
             now = _now_local(_get_user_timezone(self.user_id))
             today = now.date()
 
-            db = SessionLocal()
-            try:
-                goals_today = db.query(Goal).filter(
-                    Goal.user_id == self.user_id,
-                    func.date(Goal.deadline) == today,
-                    Goal.status_id == 1,
-                ).all()
-                for goal in goals_today:
-                    self.send_notification(
-                        "Напоминание о цели",
-                        f"Сегодня нужно выполнить: {goal.name}",
-                    )
-
-                tomorrow = today + timedelta(days=1)
-                goals_tomorrow = db.query(Goal).filter(
-                    Goal.user_id == self.user_id,
-                    func.date(Goal.deadline) == tomorrow,
-                    Goal.status_id == 1,
-                ).all()
-                for goal in goals_tomorrow:
-                    self.send_notification(
-                        "Напоминание на завтра",
-                        f"Завтра дедлайн цели: {goal.name}",
-                    )
-
-                goals_overdue = db.query(Goal).filter(
-                    Goal.user_id == self.user_id,
-                    func.date(Goal.deadline) < today,
-                    Goal.status_id.in_([1, 3]),
-                ).all()
-                for goal in goals_overdue:
-                    self.send_notification(
-                        "Просроченная цель!",
-                        f"Просрочена цель: {goal.name}",
-                        "critical",
-                    )
-
-                print(
-                    f"[NotificationService] Проверка целей: "
-                    f"{len(goals_today)} сегодня, "
-                    f"{len(goals_tomorrow)} завтра, "
-                    f"{len(goals_overdue)} просрочено"
+            # Сегодняшние
+            goals_today = self.db.query(Goal).filter(
+                Goal.user_id == self.user_id,
+                func.date(Goal.deadline) == today,
+                Goal.status_id == 1,
+            ).all()
+            for goal in goals_today:
+                self.send_notification(
+                    "Напоминание о цели",
+                    f"Сегодня нужно выполнить: {goal.name}",
                 )
-            finally:
-                db.close()
 
+            # Завтрашние
+            tomorrow = today + timedelta(days=1)
+            goals_tomorrow = self.db.query(Goal).filter(
+                Goal.user_id == self.user_id,
+                func.date(Goal.deadline) == tomorrow,
+                Goal.status_id == 1,
+            ).all()
+            for goal in goals_tomorrow:
+                self.send_notification(
+                    "Напоминание на завтра",
+                    f"Завтра дедлайн цели: {goal.name}",
+                )
+
+            # Просроченные
+            goals_overdue = self.db.query(Goal).filter(
+                Goal.user_id == self.user_id,
+                func.date(Goal.deadline) < today,
+                Goal.status_id.in_([1, 3]),
+            ).all()
+            for goal in goals_overdue:
+                self.send_notification(
+                    "Просроченная цель!",
+                    f"Просрочена цель: {goal.name}",
+                    "critical",
+                )
+
+            print(
+                f"[NotificationService] Проверка целей: "
+                f"{len(goals_today)} сегодня, "
+                f"{len(goals_tomorrow)} завтра, "
+                f"{len(goals_overdue)} просрочено"
+            )
         except Exception as e:
             print(f"[NotificationService] Ошибка при проверке целей: {e}")
+
 
     def check_habit_streak(self):
         """Проверить привычки и напомнить о них.
 
-        Использует свежую сессию, сравнения — в московском поясе.
+        Использует переданную сессию self.db.
         """
         try:
             from src.models.habit import Habit
-            from src.config.database import SessionLocal
 
             if self.user_id is None:
                 return
+            if self.db is None:
+                print("[NotificationService] Нет сессии БД для проверки привычек")
+                return
 
-            db = SessionLocal()
-            try:
-                habits = db.query(Habit).filter(
-                    Habit.user_id == self.user_id,
-                    Habit.status_id == 1,
-                ).all()
+            habits = self.db.query(Habit).filter(
+                Habit.user_id == self.user_id,
+                Habit.status_id == 1,
+            ).all()
 
-                for habit in habits:
-                    if habit.type_id == 1:      # ежедневная
-                        self.send_notification(
-                            "Напоминание о привычке",
-                            f"Не забудьте о привычке: {habit.name}",
-                        )
-                print(f"[NotificationService] Проверка привычек: {len(habits)} активных")
-            finally:
-                db.close()
+            for habit in habits:
+                if habit.type_id == 1:      # ежедневная
+                    self.send_notification(
+                        "Напоминание о привычке",
+                        f"Не забудьте о привычке: {habit.name}",
+                    )
 
+            print(f"[NotificationService] Проверка привычек: {len(habits)} активных")
         except Exception as e:
             print(f"[NotificationService] Ошибка при проверке привычек: {e}")
 
     def check_scheduled_notifications(self):
         """Отправить плановые напоминания из таблицы notification_schedule.
 
-        Окно ±5 минут вокруг текущего локального времени пользователя.
+        Окно ±5 минут вокруг текущего локального времени пользователя.check_goal_deadlines 
         После отправки помечает запись как доставленную (status_id=3)
         и планирует следующий цикл (+1 день) чтобы напоминание повторилось.
         """

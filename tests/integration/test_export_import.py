@@ -42,7 +42,7 @@ class TestExportImport:
         # Создаём второго пользователя и импортируем
         from src.services.auth_service import AuthService
         auth = AuthService(db_session)
-        u2   = auth.register("import_user", "Pass1234", gdpr_consent=True)
+        u2   = auth.register("import_user", "Pass1234")
         isvc = ImportService(db_session, u2["id"])
         result = isvc.import_from_json(out, mode="add")
         assert result["imported_goals"] >= 1
