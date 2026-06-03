@@ -87,7 +87,7 @@ python3 -c "import secrets; print(secrets.token_hex(16))"
 ### 6. Применить миграции
 
 ```bash
-alembic upgrade head
+python -m alembic upgrade head
 ```
 
 ---
