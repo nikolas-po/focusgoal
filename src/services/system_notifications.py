@@ -41,6 +41,7 @@ class NotificationInstaller:
         script_text = """#!/usr/bin/env python3
 # Автоматически сгенерировано FocusGoal
 import sys, subprocess
+from datetime import datetime, timedelta
 sys.path.insert(0, {project_root!r})
 
 
@@ -54,11 +55,9 @@ def _notify(title: str, msg: str):
 
 def _now_for_timezone(timezone_name: str) -> datetime:
     try:
-        from datetime import datetime
         from zoneinfo import ZoneInfo
         return datetime.now(ZoneInfo(timezone_name)).replace(tzinfo=None)
     except Exception:
-        from datetime import datetime
         return datetime.now()
 
 
@@ -66,9 +65,8 @@ def main():
     try:
         from src.config.database import SessionLocal
         from src.models.user import User
-        from src.models.notification_schedule import NotificationSchedule
+        from src.models.notification import NotificationSchedule
         from src.models.goal import Goal
-        from datetime import datetime, timedelta
 
         db = SessionLocal()
         users = db.query(User).all()
@@ -78,13 +76,13 @@ def main():
             window_start = now - timedelta(minutes=5)
             pending = db.query(NotificationSchedule).filter(
                 NotificationSchedule.user_id == user.id,
-                NotificationSchedule.status_id == 2,  # PENDING
+                NotificationSchedule.delivery_status_id == 2,  # PENDING
                 NotificationSchedule.send_at >= window_start,
                 NotificationSchedule.send_at <= now + timedelta(minutes=1),
             ).all()
             for n in pending:
                 _notify("FocusGoal", n.content or "Напоминание")
-                n.status_id = 1  # SENT
+                n.delivery_status_id = 3  # DELIVERED
 
             today_end = now.replace(hour=23, minute=59, second=59)
             today_start = now.replace(hour=0, minute=0, second=0)

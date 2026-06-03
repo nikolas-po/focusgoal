@@ -206,6 +206,14 @@ class LoginWindow(BaseAuthWindow):
             notif_service.schedule_notifications(interval_minutes=1)
         except Exception:
             pass
+        # Автоматически установить systemd-таймер, если ещё не установлен.
+        # Это обеспечивает приход уведомлений даже при закрытом приложении.
+        try:
+            from src.services.system_notifications import NotificationInstaller
+            if not NotificationInstaller.is_installed():
+                NotificationInstaller.install()
+        except Exception:
+            pass
         self.main_window.show()
         safe_raise(self.main_window)
         self.close()
