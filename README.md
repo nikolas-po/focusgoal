@@ -59,6 +59,10 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+```bash
+sudo apt install libnotify-bin python3-dbus python3-gi libgirepository-2.0-dev
+```
+
 ### 4. Настроить базу данных
 
 ```sql
