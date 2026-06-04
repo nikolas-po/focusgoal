@@ -65,6 +65,7 @@ pip install -r requirements.txt
 CREATE DATABASE focusgoal_db;
 CREATE USER focusgoal_user WITH PASSWORD 'ваш_пароль';
 GRANT ALL PRIVILEGES ON DATABASE focusgoal_db TO focusgoal_user;
+ALTER DATABASE focusgoal_db OWNER TO focusgoal_user;
 ```
 
 ### 5. Создать файл .env
@@ -146,7 +147,7 @@ focusgoal/
 
 **Уровень репозитория** — репозитории. Изолированный доступ к БД через SQLAlchemy ORM. Параметризованные запросы.
 
-**Уровень данных** — PostgreSQL. DDL-скрипты в `scripts/focus_goal_bd.sql`.
+**Уровень данных** — PostgreSQL.
 
 ---
 
@@ -211,7 +212,7 @@ pytest tests/ --cov=src --cov-report=term-missing
 
 ---
 
-## Уведомления без systemd-таймера
+## Уведомления
 
 По умолчанию уведомления отправляются через встроенный APScheduler, который стартует вместе с приложением. Systemd-таймер — опциональный компонент для уведомлений когда приложение закрыто.
 
