@@ -164,7 +164,6 @@ focusgoal/
 | notification_schedule | Расписание уведомлений |
 | system_log | Журнал системных событий |
 
-Полный DDL-скрипт: `scripts/focus_goal_bd.sql`
 
 ---
 
